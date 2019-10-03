@@ -1,4 +1,4 @@
-import { Grid, Direction, Point } from './grid'
+import { Grid, Direction } from './grid'
 import { Player } from './player'
 import * as Tiles from './tiles'
 import {
@@ -11,26 +11,71 @@ import {
 } from './reports'
 import { Special } from './specials'
 
+function shuffle(items: any[]) {
+    for (let i = items.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [items[i], items[j]] = [items[j], items[i]];
+    }
+    return items;
+}
+
+export class Deck<T> {
+    drawPile: T[]
+    discardPile: T[]
+
+    constructor(drawPile: T[], discardPile: T[] = []) {
+        this.drawPile = drawPile
+        this.discardPile = discardPile
+    }
+
+    draw() {
+        if (this.drawPile.length == 0) {
+            this.shuffle()
+        }
+        return this.drawPile.pop()
+    }
+    
+    discard(item: T) {
+        this.discardPile.push(item)
+    }
+
+    shuffle() {
+        const discardPile = this.discardPile
+        this.discardPile = []
+
+        this.drawPile.concat(discardPile)
+        shuffle(this.drawPile)
+    }
+}
+
 export class Game {
     players: Player[]
     grid: Grid
+    specials: Deck<Special>
     turn = -1
-    specials: Special[]
-    winner: Player | null
+    maxPlayerTurns: number
 
-    constructor(players: Player[], grid: Grid, specials: Special[]) {
+    constructor(players: Player[], grid: Grid, specials: Deck<Special>, maxPlayerTurns: number) {
         this.players = players
         this.grid = grid
         this.specials = specials
+        this.maxPlayerTurns = maxPlayerTurns
     }
 
+    playerTurn = () => Math.floor(this.turn / this.players.length) + 1
+
     loop = async () => {
-        if (this.winner)
-            throw new Error('Game over')
+        if (this.players.every(player => player.won)) {
+            throw new Error('All players have won')
+        } else if (this.playerTurn() >= this.maxPlayerTurns) {
+            throw new Error('Reached max turns')
+        }
 
         this.turn++
         const player = this.players[this.turn % this.players.length]
-        this.sendPlayerReport(player, new TurnStartReport())
+        if (player.won) return
+
+        this.sendPlayerReport(player, new TurnStartReport(this.playerTurn()))
         const oldPoint = player.point
     
         const action = await player.handleTurn()
@@ -60,7 +105,7 @@ export class Game {
         } else if (newTile instanceof Tiles.House && !newTile.spawned) {
             this.sendPlayerReport(player, new FoundHouseActionReport())
             if (newTile.topping === player.topping) {
-                this.winner = player
+                player.won = this.playerTurn()
 
                 //game.sendPlayerReport(player, new WinnerReport(player))
             }
@@ -92,7 +137,9 @@ export class Game {
     }
 
     givePlayerSpecial(player: Player) {
-        const special = this.specials.splice(Math.floor(Math.random() * this.specials.length), 1)
-        player.specials.push(special)
+        const special = this.specials.draw()
+        if (special) {
+            player.specials.push(special)
+        }
     }
 }

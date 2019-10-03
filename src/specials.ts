@@ -1,7 +1,7 @@
 import { Action } from "./actions"
 import { Game } from "./game"
 import { Player } from "./player"
-import { Direction, OrthologicalDirections, DiagonalDirections, Point } from "./grid"
+import { OrthologicalDirections, DiagonalDirections, Point } from "./grid"
 import {
     BumpedIntoWallActionReport,
     TeleportMoveActionReport,
@@ -17,16 +17,14 @@ export interface Special {}
 //remove ghost. do not report
 //fail if unable to move. report
 export class BishopSpecial extends Action implements Special {
-    player: Player
     direction: DiagonalDirections
 
     constructor(player: Player, direction: DiagonalDirections) {
-        super()
-        this.player = player
+        super(player)
         this.direction = direction
     }
 
-    resolve(game: Game) {
+    async resolve(game: Game) {
         let offset = Math.max(game.grid.height, game.grid.width)
         let newPoint = this.movePoint(game, offset)
         while (game.grid.getOrBorder(newPoint) instanceof Tiles.Wall && offset > 0) {
@@ -56,16 +54,14 @@ export class BishopSpecial extends Action implements Special {
 //remove ghost. do not report
 //fail if unable to move. report
 export class RookSpecial extends Action implements Special {
-    player: Player
     direction: OrthologicalDirections
 
     constructor(player: Player, direction: OrthologicalDirections) {
-        super()
-        this.player = player
+        super(player)
         this.direction = direction
     }
 
-    resolve(game: Game) {
+    async resolve(game: Game) {
         let offset = Math.max(game.grid.height, game.grid.width)
         let newPoint = this.movePoint(game, offset)
         while (game.grid.getOrBorder(newPoint) instanceof Tiles.Wall && offset > 0) {
@@ -95,16 +91,14 @@ export class RookSpecial extends Action implements Special {
 //remove ghost. do not report
 //fail if wall. report
 export class DiagonalSpecial extends Action implements Special {
-    player: Player
     direction: DiagonalDirections
 
     constructor(player: Player, direction: DiagonalDirections) {
-        super()
-        this.player = player
+        super(player)
         this.direction = direction
     }
 
-    resolve(game: Game) {
+    async resolve(game: Game) {
         const newPoint = this.player.point.offsetDirection(this.direction)
         const newTile = game.grid.getOrBorder(newPoint)
         if (newTile instanceof Tiles.Wall) {
@@ -123,16 +117,14 @@ export class DiagonalSpecial extends Action implements Special {
 //remove ghost. do not report
 //fail if wall. report
 export class HopStepSpecial extends Action implements Special {
-    player: Player
     direction: OrthologicalDirections
 
     constructor(player: Player, direction: OrthologicalDirections) {
-        super()
-        this.player = player
+        super(player)
         this.direction = direction
     }
 
-    resolve(game: Game) {
+    async resolve(game: Game) {
         const newPoint = this.player.point.offsetDirection(this.direction, 2)
         const newTile = game.grid.getOrBorder(newPoint)
         if (newTile instanceof Tiles.Wall) {
@@ -151,14 +143,11 @@ export class HopStepSpecial extends Action implements Special {
 //remove ghost. do not report
 //fail if unable to move. report
 export class PointSymmetricSpecial extends Action implements Special {
-    player: Player
-
     constructor(player: Player) {
-        super()
-        this.player = player
+        super(player)
     }
 
-    resolve(game: Game) {
+    async resolve(game: Game) {
         const newPoint = this.movePoint(game)
         const newTile = game.grid.getOrBorder(newPoint)
         if (newTile instanceof Tiles.Wall) {
@@ -183,20 +172,18 @@ export class PointSymmetricSpecial extends Action implements Special {
 //move to starting space
 //do additional move OR attack
 export class BackToStartSpecial extends Action implements Special {
-    player: Player
-
     constructor(player: Player) {
-        super()
-        this.player = player
+        super(player)
     }
 
-    resolve(game: Game) {
+    async resolve(game: Game) {
         const newPoint = this.movePoint(game)
 
         this.player.point = newPoint
         game.sendPlayerReport(this.player, new BackToStartTeleportActionReport())
 
-        //do additional move or attack
+        const action = await this.player.handleBackToStartSpecial()
+        await action.resolve(game)
     }
 
     movePoint(game: Game) {

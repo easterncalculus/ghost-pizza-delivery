@@ -1,7 +1,8 @@
 import { Player } from './player'
 import * as Tiles from './tiles'
-import { Map, Record, Repeat, List } from 'immutable'
+import { Map, Record, Repeat } from 'immutable'
 import * as Extendable from 'extendable-immutable'
+import { Game } from './game'
 
 
 export enum Topping {
@@ -63,6 +64,12 @@ export class Grid extends Extendable.Map<Point, Tiles.Tile> {
         super()
         this.width = width
         this.height = height
+
+        Repeat(width).forEach(x => {
+            Repeat(height).forEach(y => {
+                this.set(new Point(x, y), this.emptyTile)
+            })
+        })
     }
 
     isAdjacentEmpty = (point: Point) => {
@@ -139,33 +146,23 @@ export class Grid extends Extendable.Map<Point, Tiles.Tile> {
     }
 }
 
-export class RandomGrid extends Grid {
-    constructor(width: 7, height: 7, players: Player[], walls = 4, graves = 6, teleports = 3) {
-        super(width, height)
-
-        this.initPlayers(players)
-        this.initPizza(players.length)
-        this.initGhosts(graves)
-        this.initWalls(walls)
-        this.initTeleporters(teleports)
-    }
-
-    initPlayers = (players: Player[]) => {
+export function randomizeGrid(game: Game, walls = 4, graves = 6, teleports = 3) {
+    const initPlayers = (grid: Grid, players: Player[]) => {
         if (players.length <= 1)
             throw new Error('Not enough players')
 
         players.forEach((player) => {
-            const point = this.randomPoint(([point, _]) => this.isAdjacentEmpty(point))
+            const point = grid.randomPoint(([point, _]) => grid.isAdjacentEmpty(point))
             player.point = point
 
-            this.set(point, new Tiles.Start(player))
-            this.adjacentPoints(point).forEach((adjacentPoint) => {
-                this.set(adjacentPoint, this.safeTile)
+            grid.set(point, new Tiles.Start(player))
+            grid.adjacentPoints(point).forEach((adjacentPoint) => {
+                grid.set(adjacentPoint, grid.safeTile)
             })
         })
     }
 
-    initPizza = (count: number) => {
+    const initPizza = (grid: Grid, count: number) => {
         const toppings = (Object.values(Topping) as Topping[])
         if (toppings.length != count)
             throw new Error('Not enough toppings')
@@ -173,42 +170,51 @@ export class RandomGrid extends Grid {
         toppings
             .filter((_, index) => index < count)
             .forEach((topping) => {
-                const pizzaPoint = this.randomPoint(([point, tile]) => tile == this.emptyTile)
-                this.set(pizzaPoint, new Tiles.Pizza(topping))
+                const pizzaPoint = grid.randomPoint(([point, tile]) => tile == grid.emptyTile)
+                grid.set(pizzaPoint, new Tiles.Pizza(topping))
                 
-                const housePoint = this.randomPoint(([point, tile]) => {
-                    return tile == this.emptyTile &&
-                        !this.adjacentPoints(point).includes(pizzaPoint)
+                const housePoint = grid.randomPoint(([point, tile]) => {
+                    return tile == grid.emptyTile &&
+                        !grid.adjacentPoints(point).includes(pizzaPoint)
                 })
-                this.set(housePoint, new Tiles.House(topping))
+                grid.set(housePoint, new Tiles.House(topping))
             })
     }
 
-    initGhosts = (count: number) => {
+    const initGhosts = (grid: Grid, count: number) => {
         Repeat(count).forEach(_ => {
-            const point = this.randomPoint(([_, tile]) => tile == this.emptyTile)
-            this.set(point, new Tiles.Grave())
+            const point = grid.randomPoint(([_, tile]) => tile == grid.emptyTile)
+            grid.set(point, new Tiles.Grave())
         })
     }
 
-    initWalls = (count: number) => {
+    const initWalls = (grid: Grid, count: number) => {
         Repeat(count).forEach(_ => {
-            const point = this.randomPoint(([_, tile]) => tile == this.emptyTile)
-            this.set(point, new Tiles.Wall())
+            const point = grid.randomPoint(([_, tile]) => tile == grid.emptyTile)
+            grid.set(point, new Tiles.Wall())
         })
     }
 
-    initTeleporters = (count: number) => {
+    const initTeleporters = (grid: Grid, count: number) => {
         if (count == 1)
             throw new Error('Can\'t have only 1 teleporter')
 
-        const firstPoint = this.randomPoint(([_, tile]) => tile == this.emptyTile)
+        const firstPoint = grid.randomPoint(([_, tile]) => tile == grid.emptyTile)
         let nextPoint = firstPoint
         Repeat(count - 1).forEach(_ => {
             const point = nextPoint
-            nextPoint = this.randomPoint(([_, tile]) => tile == this.emptyTile)
-            this.set(point, new Tiles.Teleporter(nextPoint))
+            nextPoint = grid.randomPoint(([_, tile]) => tile == grid.emptyTile)
+            grid.set(point, new Tiles.Teleporter(nextPoint))
         })
-        this.set(nextPoint, new Tiles.Teleporter(firstPoint))
+        grid.set(nextPoint, new Tiles.Teleporter(firstPoint))
     }
+
+    const grid = game.grid
+    const players = game.players
+
+    initPlayers(grid, players)
+    initPizza(grid, players.length)
+    initGhosts(grid, graves)
+    initWalls(grid, walls)
+    initTeleporters(grid, teleports)
 }

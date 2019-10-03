@@ -1,8 +1,18 @@
-import { Direction, Topping, DiagonalDirections, OrthologicalDirections } from './grid'
+import {
+    Topping,
+    Direction,
+    DiagonalDirections,
+    OrthologicalDirections
+} from './grid'
 
 export interface Report {}
 
-export class TurnStartReport implements Report {}
+export class TurnStartReport implements Report {
+    turn: number
+    constructor(turn: number) {
+        this.turn = turn
+    }
+}
 
 export class TurnEndReport implements Report {
     walls: Set<Direction>

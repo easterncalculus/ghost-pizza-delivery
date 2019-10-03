@@ -10,21 +10,24 @@ import {
     ChaseAwayGhostActionReport,
     GhostNotFoundActionReport,
 } from "./reports"
+import { AntiGhostBarrierSpecial } from "./specials"
 
 
 export abstract class Action {
     player: Player
 
+    constructor(player: Player) {
+        this.player = player
+    }
+
     abstract async resolve(game: Game): Promise<void>
 }
 
 export class AttackAction extends Action {
-    player: Player
     direction: Direction.North | Direction.East | Direction.South | Direction.West
 
     constructor(player: Player, direction: Direction.North | Direction.East | Direction.South | Direction.West) {
-        super()
-        this.player = player
+        super(player)
         this.direction = direction
     }
 
@@ -36,7 +39,6 @@ export class AttackAction extends Action {
         if (tile instanceof Tiles.Ghost && tile.spawned) {
             tile.despawn()
             game.givePlayerSpecial(this.player)
-
             game.sendPlayerReport(this.player, new ChaseAwayGhostActionReport())
         } else {
             game.sendPlayerReport(this.player, new GhostNotFoundActionReport())
@@ -45,12 +47,10 @@ export class AttackAction extends Action {
 }
 
 export class MoveAction extends Action {
-    player: Player
     direction: Direction.North | Direction.East | Direction.South | Direction.West
 
     constructor(player: Player, direction: Direction.North | Direction.East | Direction.South | Direction.West) {
-        super()
-        this.player = player
+        super(player)
         this.direction = direction
     }
 
@@ -63,7 +63,16 @@ export class MoveAction extends Action {
         } else if (newTile instanceof Tiles.Ghost && newTile.spawned) {
             game.sendPlayerReport(this.player, new MoveActionReport(this.direction))
             game.sendPlayerReport(this.player, new BumpedIntoGhostActionReport())
-            return // implement using anti ghost barrier special
+            
+            const specials = this.player.specials
+            const index = specials.indexOf(AntiGhostBarrierSpecial)
+            if (index != -1) {
+                const useSpecial = await this.player.handleUseAntiGhostBarrierSpecial()
+                if (!useSpecial) return
+
+                newTile.despawn()
+                game.sendPlayerReport(this.player, new ChaseAwayGhostActionReport())
+            }
         }
     
         this.player.point = newPoint
