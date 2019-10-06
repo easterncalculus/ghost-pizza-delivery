@@ -136,6 +136,7 @@ export class PlayerCli extends Player {
     // remove special if used
     async handleUseAntiGhostBarrierSpecial(): Promise<boolean> {
         const input = await inquirer.prompt([{
+            type: 'confirm',
             name: 'confirm',
             message: 'Use Anti-Ghost Barrier?',
         }])
@@ -182,7 +183,9 @@ export class PlayerCli extends Player {
             console.log(`Near Pizza: ${report.nearPizza ? 'Yes' : 'No'}`)
             console.log(`Near House: ${report.nearHouse ? 'Yes' : 'No'}`)
         } else if (report instanceof Reports.WinReport) {
-            console.log(`${this.emoji} won on turn ${report.turn}!`)
+            console.log(`${this.emoji}  won on turn ${report.turn}!`)
+        } else if (report instanceof Reports.RecieveSpecialReport) {
+            console.log(`${this.emoji}  recived ${(report.special as Function).name}`)
         } else if (report instanceof Reports.AttackActionReport) {
             console.log(`${this.emoji}  attacked ${Direction[report.direction]}`)
         } else if (report instanceof Reports.ChaseAwayGhostActionReport) {

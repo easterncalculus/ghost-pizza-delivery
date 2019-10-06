@@ -6,16 +6,19 @@ import { Topping } from './topping'
 import { Game } from './game'
 import { Player } from './player'
 import * as Tiles from './tiles'
+import { Random } from 'random-js'
 
 
 export class Grid extends Array<Tiles.Tile> {
     width: number
     height: number
+    random: Random
 
     constructor(width = 7, height = 7) {
         super()
         this.width = width
         this.height = height
+        this.random = new Random()
 
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < height; x++) {
@@ -111,7 +114,7 @@ export class Grid extends Array<Tiles.Tile> {
         if (values.length == 0)
             throw new Error('Could not find point')
 
-        return values[Math.floor(Math.random() * values.length)][0]
+        return this.random.pick(values)[0]
     }
 
     isValid = (players: Player[]) => {

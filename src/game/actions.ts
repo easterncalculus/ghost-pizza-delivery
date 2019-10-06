@@ -37,8 +37,8 @@ export class AttackAction extends Action {
         const tile = game.grid.getOrBorder(attackPoint)
         if (tile.ghost) {
             tile.ghost = false
-            game.givePlayerSpecial(this.player)
             game.sendPlayerReport(this.player, new Reports.ChaseAwayGhostActionReport())
+            game.givePlayerSpecial(this.player)
         } else {
             game.sendPlayerReport(this.player, new Reports.GhostNotFoundActionReport())
         }

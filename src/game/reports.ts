@@ -1,6 +1,7 @@
 import { Topping } from './topping'
 import { Direction, OrthogonalDirections, DiagonalDirections } from './directions'
 import { Player } from './player'
+import { Special } from './actions'
 
 export interface Report {}
 
@@ -42,6 +43,16 @@ export class WinReport extends PlayerReport {
     constructor(player: Player, turn: number) {
         super(player)
         this.turn = turn
+    }
+}
+
+export class RecieveSpecialReport implements PlayerReport {
+    player: Player
+    special: Special
+
+    constructor(player: Player, special: Special) {
+        this.player = player
+        this.special = special
     }
 }
 

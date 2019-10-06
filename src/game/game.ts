@@ -1,4 +1,5 @@
 import wu from 'wu'
+import { Random } from 'random-js'
 
 import { Direction } from './directions'
 import * as Reports from './reports'
@@ -8,21 +9,19 @@ import { Player } from './player'
 import * as Tiles from './tiles'
 import { Special } from './actions'
 
-function shuffle(items: any[]) {
-    for (let i = items.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [items[i], items[j]] = [items[j], items[i]];
-    }
-    return items;
-}
-
 export class Deck<T> {
     drawPile: T[]
     discardPile: T[]
+    random: Random
 
     constructor(drawPile: T[], discardPile: T[] = [], shuffle = false) {
         this.drawPile = drawPile
         this.discardPile = discardPile
+        this.random = new Random()
+
+        if (shuffle) {
+            this.shuffle()
+        }
     }
 
     draw() {
@@ -44,7 +43,7 @@ export class Deck<T> {
         this.discardPile = []
 
         this.drawPile.concat(discardPile)
-        shuffle(this.drawPile)
+        this.random.shuffle(this.drawPile)
     }
 }
 
@@ -79,7 +78,7 @@ export abstract class Game {
         const oldPoint = player.point
     
         const action = await player.handleTurn()
-        action.resolve(this)
+        await action.resolve(this)
 
         if (player.point != oldPoint) {
             this.afterPlayerMove(player)
@@ -131,12 +130,13 @@ export abstract class Game {
         this.sendPlayerReport(player, new Reports.TurnEndReport(player, walls, nearGhosts, nearPizza, nearHouse))
     }
 
-    abstract async sendPlayerReport(player: Player, report: Reports.Report): Promise<void>
+    abstract sendPlayerReport(player: Player, report: Reports.Report): void
 
     givePlayerSpecial(player: Player) {
         const special = this.specials.draw()
         if (special) {
             player.addSpecial(special)
+            this.sendPlayerReport(player, new Reports.RecieveSpecialReport(player, special))
         }
     }
 }
