@@ -1,15 +1,12 @@
-import { Grid, Direction } from './grid'
+import wu from 'wu'
+
+import { Direction } from './directions'
+import * as Reports from './reports'
+
+import { Grid } from './grid'
 import { Player } from './player'
 import * as Tiles from './tiles'
-import {
-    TurnStartReport,
-    TurnEndReport,
-    Report,
-    TeleportActionReport,
-    FoundPizzaActionReport,
-    FoundHouseActionReport
-} from './reports'
-import { Special } from './specials'
+import { Special } from './actions'
 
 function shuffle(items: any[]) {
     for (let i = items.length - 1; i > 0; i--) {
@@ -23,7 +20,7 @@ export class Deck<T> {
     drawPile: T[]
     discardPile: T[]
 
-    constructor(drawPile: T[], discardPile: T[] = []) {
+    constructor(drawPile: T[], discardPile: T[] = [], shuffle = false) {
         this.drawPile = drawPile
         this.discardPile = discardPile
     }
@@ -32,7 +29,10 @@ export class Deck<T> {
         if (this.drawPile.length == 0) {
             this.shuffle()
         }
-        return this.drawPile.pop()
+        const card = this.drawPile.pop()
+        if (card == undefined) throw new Error()
+
+        return card
     }
     
     discard(item: T) {
@@ -48,14 +48,14 @@ export class Deck<T> {
     }
 }
 
-export class Game {
+export abstract class Game {
     players: Player[]
     grid: Grid
     specials: Deck<Special>
     turn = -1
     maxPlayerTurns: number
 
-    constructor(players: Player[], grid: Grid, specials: Deck<Special>, maxPlayerTurns: number) {
+    constructor(players: Player[], grid: Grid, specials: Deck<Special>, maxPlayerTurns: number = 20) {
         this.players = players
         this.grid = grid
         this.specials = specials
@@ -75,7 +75,7 @@ export class Game {
         const player = this.players[this.turn % this.players.length]
         if (player.won) return
 
-        this.sendPlayerReport(player, new TurnStartReport(this.playerTurn()))
+        this.sendPlayerReport(player, new Reports.TurnStartReport(player, this.playerTurn()))
         const oldPoint = player.point
     
         const action = await player.handleTurn()
@@ -93,21 +93,21 @@ export class Game {
         if (newTile instanceof Tiles.Teleporter) {
             player.point = newTile.nextPoint
             
-            this.sendPlayerReport(player, new TeleportActionReport())
+            this.sendPlayerReport(player, new Reports.TeleportActionReport())
         } else if (newTile instanceof Tiles.Pizza && !newTile.found) {
             if (player.topping === null) {
                 this.grid.spawnHouse(newTile.topping)
 
-                this.sendPlayerReport(player, new FoundPizzaActionReport(newTile.topping))
+                this.sendPlayerReport(player, new Reports.FoundPizzaActionReport(newTile.topping))
             } else {
-                this.sendPlayerReport(player, new FoundPizzaActionReport(null))
+                this.sendPlayerReport(player, new Reports.FoundPizzaActionReport(null))
             }
         } else if (newTile instanceof Tiles.House && !newTile.spawned) {
-            this.sendPlayerReport(player, new FoundHouseActionReport())
+            this.sendPlayerReport(player, new Reports.FoundHouseActionReport())
             if (newTile.topping === player.topping) {
                 player.won = this.playerTurn()
 
-                //game.sendPlayerReport(player, new WinnerReport(player))
+                this.sendPlayerReport(player, new Reports.WinReport(player, this.playerTurn()))
             }
         }
     }
@@ -117,29 +117,26 @@ export class Game {
         const surroundingTiles = this.grid.surroundingTiles(point)
         
         const walls: Set<Direction> = new Set(
-            this.grid.adjacentTiles(point)
-                .filter(tile => tile instanceof Tiles.Wall)
-                .toArray()
+            wu(this.grid.adjacentTiles(point).entries())
+                .filter(([_, tile]) => tile instanceof Tiles.Wall)
                 .map(([direction, _]) => direction)
         )
-        const nearGhosts = surroundingTiles
-            .some(tile => tile instanceof Tiles.Ghost && tile.spawned)
-        const nearPizza = surroundingTiles
+        const nearGhosts = wu(surroundingTiles.values())
+            .some(tile => tile.ghost)
+        const nearPizza = wu(surroundingTiles.values())
             .some(tile => tile instanceof Tiles.Pizza && !tile.found)
-        const nearHouse = surroundingTiles
+        const nearHouse = wu(surroundingTiles.values())
             .some(tile => tile instanceof Tiles.House && tile.spawned)
         
-        this.sendPlayerReport(player, new TurnEndReport(walls, nearGhosts, nearPizza, nearHouse))
+        this.sendPlayerReport(player, new Reports.TurnEndReport(player, walls, nearGhosts, nearPizza, nearHouse))
     }
 
-    sendPlayerReport = (player: Player, report: Report) => {
-        throw new Error("Method not implemented.")
-    }
+    abstract async sendPlayerReport(player: Player, report: Reports.Report): Promise<void>
 
     givePlayerSpecial(player: Player) {
         const special = this.specials.draw()
         if (special) {
-            player.specials.push(special)
+            player.addSpecial(special)
         }
     }
 }

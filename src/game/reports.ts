@@ -1,26 +1,34 @@
-import {
-    Topping,
-    Direction,
-    DiagonalDirections,
-    OrthologicalDirections
-} from './grid'
+import { Topping } from './topping'
+import { Direction, OrthogonalDirections, DiagonalDirections } from './directions'
+import { Player } from './player'
 
 export interface Report {}
 
-export class TurnStartReport implements Report {
+export abstract class PlayerReport implements Report {
+    player: Player
+
+    constructor(player: Player) {
+        this.player = player
+    }
+}
+
+export class TurnStartReport extends PlayerReport {
     turn: number
-    constructor(turn: number) {
+
+    constructor(player: Player, turn: number) {
+        super(player)
         this.turn = turn
     }
 }
 
-export class TurnEndReport implements Report {
+export class TurnEndReport extends PlayerReport {
     walls: Set<Direction>
     nearGhosts: boolean
     nearPizza: boolean
     nearHouse: boolean
 
-    constructor(walls: Set<Direction>, nearGhosts: boolean, nearPizza: boolean, nearHouse: boolean) {
+    constructor(player: Player, walls: Set<Direction>, nearGhosts: boolean, nearPizza: boolean, nearHouse: boolean) {
+        super(player)
         this.walls = walls
         this.nearGhosts = nearGhosts
         this.nearPizza = nearPizza
@@ -28,20 +36,29 @@ export class TurnEndReport implements Report {
     }
 }
 
+export class WinReport extends PlayerReport {
+    turn: number
+    
+    constructor(player: Player, turn: number) {
+        super(player)
+        this.turn = turn
+    }
+}
+
 export interface ActionReport extends Report {}
 
 export class AttackActionReport implements ActionReport {
-    direction: OrthologicalDirections
+    direction: OrthogonalDirections
 
-    constructor(direction: OrthologicalDirections) {
+    constructor(direction: OrthogonalDirections) {
         this.direction = direction
     }
 }
 
 export class MoveActionReport implements ActionReport {
-    direction: OrthologicalDirections
+    direction: OrthogonalDirections
 
-    constructor(direction: OrthologicalDirections) {
+    constructor(direction: OrthogonalDirections) {
         this.direction = direction
     }
 }

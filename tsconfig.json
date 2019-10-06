@@ -1,11 +1,23 @@
 {
     "compilerOptions": {
-        "outDir": "./dist/",
-        "sourceMap": true,
-        "noImplicitAny": true,
-        "strictNullChecks": true,
+        "target": "es5",
         "module": "commonjs",
-        "target": "esnext",
-        "jsx": "react"
+        "lib": [
+            "es6",
+            "es2015",
+            "dom"
+        ],
+        "declaration": true,
+        "outDir": "dist",
+        "rootDir": "src",
+        "strict": true,
+        "types": [
+            "node"
+        ],
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "strictNullChecks": true,
+        "sourceMap": true,
+        "noImplicitAny": true
     }
 }
