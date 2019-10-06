@@ -56,60 +56,74 @@ export class RecieveSpecialReport implements PlayerReport {
     }
 }
 
-export interface ActionReport extends Report {}
+export class UseSpecialReport extends PlayerReport {
+    special: Special
 
-export class AttackActionReport implements ActionReport {
+    constructor(player: Player, special: Special) {
+        super(player)
+        this.special = special
+    }
+}
+
+export abstract class ActionReport extends PlayerReport {}
+
+export class AttackActionReport extends ActionReport {
     direction: OrthogonalDirections
 
-    constructor(direction: OrthogonalDirections) {
+    constructor(player: Player, direction: OrthogonalDirections) {
+        super(player)
         this.direction = direction
     }
 }
 
-export class MoveActionReport implements ActionReport {
+export class MoveActionReport extends ActionReport {
     direction: OrthogonalDirections
 
-    constructor(direction: OrthogonalDirections) {
+    constructor(player: Player, direction: OrthogonalDirections) {
+        super(player)
         this.direction = direction
     }
 }
 
-export class TeleportMoveActionReport implements ActionReport {
+export class TeleportMoveActionReport extends ActionReport {
     direction: Direction
     count: number
 
-    constructor(direction: Direction, count: number) {
+    constructor(player: Player, direction: Direction, count: number) {
+        super(player)
         this.direction = direction
         this.count = count
     }
 }
 
-export class DiagonalMoveActionReport implements ActionReport {
+export class DiagonalMoveActionReport extends ActionReport {
     direction: DiagonalDirections
 
-    constructor(direction: DiagonalDirections) {
+    constructor(player: Player, direction: DiagonalDirections) {
+        super(player)
         this.direction = direction
     }
 }
 
-export class BackToStartTeleportActionReport implements ActionReport {}
+export class BackToStartTeleportActionReport extends ActionReport {}
 
-export class TeleportActionReport implements ActionReport {}
+export class TeleportActionReport extends ActionReport {}
 
-export class FoundPizzaActionReport implements ActionReport {
+export class FoundPizzaActionReport extends ActionReport {
     topping: Topping | null
 
-    constructor(topping: Topping | null) {
+    constructor(player: Player, topping: Topping | null) {
+        super(player)
         this.topping = topping
     }
 }
 
-export class FoundHouseActionReport implements ActionReport {}
+export class FoundHouseActionReport extends ActionReport {}
 
-export class BumpedIntoWallActionReport implements ActionReport {}
+export class BumpedIntoWallActionReport extends ActionReport {}
 
-export class BumpedIntoGhostActionReport implements ActionReport {}
+export class BumpedIntoGhostActionReport extends ActionReport {}
 
-export class ChaseAwayGhostActionReport implements ActionReport {}
+export class ChaseAwayGhostActionReport extends ActionReport {}
 
-export class GhostNotFoundActionReport implements ActionReport {}
+export class GhostNotFoundActionReport extends ActionReport {}

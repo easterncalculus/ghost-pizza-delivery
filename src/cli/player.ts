@@ -22,6 +22,7 @@ export class PlayerCli extends Player {
         while (true) {
             try {
                 const input = await inquirer.prompt([{
+                    type: 'list',
                     name: 'turn',
                     message: 'What would you like to do?',
                     choices: ['move', 'attack', 'special', 'skip']
@@ -88,6 +89,7 @@ export class PlayerCli extends Player {
     async handleOrthologicalDirection(): Promise<OrthogonalDirections> {
         while (true) {
             const input = await inquirer.prompt([{
+                type: 'list',
                 name: 'direction',
                 message: 'Which direction?',
                 choices: ['north', 'east', 'south', 'west', 'cancel']
@@ -112,6 +114,7 @@ export class PlayerCli extends Player {
     async handleDiagonalDirection(): Promise<DiagonalDirections> {
         while (true) {
             const input = await inquirer.prompt([{
+                type: 'list',
                 name: 'direction',
                 message: 'Which direction?',
                 choices: ['northeast', 'southeast', 'southwest', 'northwest', 'cancel']
@@ -140,15 +143,13 @@ export class PlayerCli extends Player {
             name: 'confirm',
             message: 'Use Anti-Ghost Barrier?',
         }])
-        if (input.confirm) {
-            this.removeSpecial(Actions.AntiGhostBarrierSpecial)
-        }
         return input.confirm
     }
 
     async handleBackToStartSpecial(): Promise<Actions.AttackAction | Actions.MoveAction | Actions.SkipAction> {
         while (true) {
             const input = await inquirer.prompt([{
+                type: 'list',
                 name: 'turn',
                 message: 'What would you like to do?',
                 choices: ['move', 'attack', 'skip']
@@ -186,6 +187,8 @@ export class PlayerCli extends Player {
             console.log(`${this.emoji}  won on turn ${report.turn}!`)
         } else if (report instanceof Reports.RecieveSpecialReport) {
             console.log(`${this.emoji}  recived ${(report.special as Function).name}`)
+        } else if (report instanceof Reports.UseSpecialReport) {
+            console.log(`${this.emoji}  used ${(report.special as Function).name}`)
         } else if (report instanceof Reports.AttackActionReport) {
             console.log(`${this.emoji}  attacked ${Direction[report.direction]}`)
         } else if (report instanceof Reports.ChaseAwayGhostActionReport) {

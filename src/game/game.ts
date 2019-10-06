@@ -74,7 +74,7 @@ export abstract class Game {
         const player = this.players[this.turn % this.players.length]
         if (player.won) return
 
-        this.sendPlayerReport(player, new Reports.TurnStartReport(player, this.playerTurn()))
+        this.sendPlayerReport(new Reports.TurnStartReport(player, this.playerTurn()))
         const oldPoint = player.point
     
         const action = await player.handleTurn()
@@ -92,21 +92,21 @@ export abstract class Game {
         if (newTile instanceof Tiles.Teleporter) {
             player.point = newTile.nextPoint
             
-            this.sendPlayerReport(player, new Reports.TeleportActionReport())
+            this.sendPlayerReport(new Reports.TeleportActionReport(player))
         } else if (newTile instanceof Tiles.Pizza && !newTile.found) {
             if (player.topping === null) {
                 this.grid.spawnHouse(newTile.topping)
 
-                this.sendPlayerReport(player, new Reports.FoundPizzaActionReport(newTile.topping))
+                this.sendPlayerReport(new Reports.FoundPizzaActionReport(player, newTile.topping))
             } else {
-                this.sendPlayerReport(player, new Reports.FoundPizzaActionReport(null))
+                this.sendPlayerReport(new Reports.FoundPizzaActionReport(player, null))
             }
         } else if (newTile instanceof Tiles.House && !newTile.spawned) {
-            this.sendPlayerReport(player, new Reports.FoundHouseActionReport())
+            this.sendPlayerReport(new Reports.FoundHouseActionReport(player))
             if (newTile.topping === player.topping) {
                 player.won = this.playerTurn()
 
-                this.sendPlayerReport(player, new Reports.WinReport(player, this.playerTurn()))
+                this.sendPlayerReport(new Reports.WinReport(player, this.playerTurn()))
             }
         }
     }
@@ -127,16 +127,16 @@ export abstract class Game {
         const nearHouse = wu(surroundingTiles.values())
             .some(tile => tile instanceof Tiles.House && tile.spawned)
         
-        this.sendPlayerReport(player, new Reports.TurnEndReport(player, walls, nearGhosts, nearPizza, nearHouse))
+        this.sendPlayerReport(new Reports.TurnEndReport(player, walls, nearGhosts, nearPizza, nearHouse))
     }
 
-    abstract sendPlayerReport(player: Player, report: Reports.Report): void
+    abstract sendPlayerReport(report: Reports.Report): void
 
     givePlayerSpecial(player: Player) {
         const special = this.specials.draw()
         if (special) {
             player.addSpecial(special)
-            this.sendPlayerReport(player, new Reports.RecieveSpecialReport(player, special))
+            this.sendPlayerReport(new Reports.RecieveSpecialReport(player, special))
         }
     }
 }
