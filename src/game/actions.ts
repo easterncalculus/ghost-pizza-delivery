@@ -21,9 +21,9 @@ export class SkipAction extends Action {
 }
 
 export class AttackAction extends Action {
-    direction: Direction.North | Direction.East | Direction.South | Direction.West
+    direction: OrthogonalDirections
 
-    constructor(player: Player, direction: Direction.North | Direction.East | Direction.South | Direction.West) {
+    constructor(player: Player, direction: OrthogonalDirections) {
         super(player)
         this.direction = direction
     }
@@ -46,9 +46,9 @@ export class AttackAction extends Action {
 }
 
 export class MoveAction extends Action {
-    direction: Direction.North | Direction.East | Direction.South | Direction.West
+    direction: OrthogonalDirections
 
-    constructor(player: Player, direction: Direction.North | Direction.East | Direction.South | Direction.West) {
+    constructor(player: Player, direction: OrthogonalDirections) {
         super(player)
         this.direction = direction
     }
