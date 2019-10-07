@@ -176,7 +176,7 @@ export class PlayerCli extends Player {
             }).join(', ') || 'None'
             console.log(`Specials: ${specials}`)
 
-            console.log(`Pizza: ${this.topping ?? 'None'}`)
+            console.log(`Pizza: ${this.topping || 'None'}`)
         } else if (report instanceof Reports.TurnEndReport) {
             console.log(' ')
             console.log(`Adjacent Walls: ${Array.from(report.walls).map(wall => Direction[wall]).join(', ') || 'None'}`)

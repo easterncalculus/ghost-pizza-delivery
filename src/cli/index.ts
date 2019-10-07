@@ -102,7 +102,7 @@ const startGame = (playerCount: number, showMap: boolean) => {
         Specials.AntiGhostBarrierSpecial,
     ], new Array(), true)
 
-    const game = new GameCli(players, new Grid(), deck, 5)
+    const game = new GameCli(players, new Grid(), deck, 20)
     randomizeGameGrid(game);
 
     (async function () {
