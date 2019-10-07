@@ -17,7 +17,17 @@ const asciiGrid = (grid: Grid, players: PlayerCli[]) => {
     return grid.map((tile, point) => {
         const player = players.find(player => player.point == point)
         if (player) {
-            return player.emoji
+            const emoji = player.emoji
+            switch (player.topping) {
+                case Topping.Cheese:
+                    return chalk.bgYellow(emoji)
+                case Topping.Shrimp:
+                    return chalk.bgRed(emoji)
+                case Topping.Vegtables:
+                    return chalk.bgGreen(emoji)
+                default:
+                    return emoji
+            }
         } else if (tile.ghost) {
             return '👻'
         } else if (tile instanceof Tiles.Empty) {
