@@ -54,6 +54,8 @@ export class MoveAction extends Action {
     }
 
     async resolve(game: Game) {
+        game.sendPlayerReport(new Reports.MoveActionReport(this.player, this.direction))
+        
         const newPoint = game.grid.offsetPoint(this.player.point, this.direction)
         if (newPoint == null) return
 
@@ -62,7 +64,6 @@ export class MoveAction extends Action {
             game.sendPlayerReport(new Reports.BumpedIntoWallActionReport(this.player))
             return
         } else if (newTile.ghost) {
-            game.sendPlayerReport(new Reports.MoveActionReport(this.player, this.direction))
             game.sendPlayerReport(new Reports.BumpedIntoGhostActionReport(this.player))
             
             const specials = this.player.specials
@@ -80,7 +81,6 @@ export class MoveAction extends Action {
         }
     
         this.player.point = newPoint
-        game.sendPlayerReport(new Reports.MoveActionReport(this.player, this.direction))
     }
 }
 
@@ -113,6 +113,7 @@ export class BishopSpecial extends ActionSpecial {
             offset--
             newPoint = this.movePoint(game, offset)
         }
+        game.sendPlayerReport(new Reports.TeleportMoveActionReport(this.player, this.direction, offset))
         if (offset == 0) return
 
         const newTile = game.grid.getOrBorder(newPoint)
@@ -124,7 +125,6 @@ export class BishopSpecial extends ActionSpecial {
         }
     
         this.player.point = newPoint
-        game.sendPlayerReport(new Reports.TeleportMoveActionReport(this.player, this.direction, offset))
     }
 
     movePoint(game: Game, offset: number) {
@@ -152,6 +152,7 @@ export class RookSpecial extends ActionSpecial {
             offset--
             newPoint = this.movePoint(game, offset)
         }
+        game.sendPlayerReport(new Reports.TeleportMoveActionReport(this.player, this.direction, offset))
         if (offset == 0) return
 
         const newTile = game.grid.getOrBorder(newPoint)
@@ -163,7 +164,6 @@ export class RookSpecial extends ActionSpecial {
         }
     
         this.player.point = newPoint
-        game.sendPlayerReport(new Reports.TeleportMoveActionReport(this.player, this.direction, offset))
     }
 
     movePoint(game: Game, offset: number) {
@@ -185,6 +185,8 @@ export class DiagonalSpecial extends ActionSpecial {
     async resolve(game: Game) {
         await super.resolve(game)
 
+        game.sendPlayerReport(new Reports.DiagonalMoveActionReport(this.player, this.direction))
+
         const newPoint = game.grid.offsetPoint(this.player.point, this.direction)
         const newTile = game.grid.getOrBorder(newPoint)
         if (newPoint == null || newTile instanceof Tiles.Wall) {
@@ -195,7 +197,6 @@ export class DiagonalSpecial extends ActionSpecial {
         }
     
         this.player.point = newPoint
-        game.sendPlayerReport(new Reports.DiagonalMoveActionReport(this.player, this.direction))
     }
 }
 
@@ -213,6 +214,8 @@ export class HopStepSpecial extends ActionSpecial {
     async resolve(game: Game) {
         await super.resolve(game)
 
+        game.sendPlayerReport(new Reports.TeleportMoveActionReport(this.player, this.direction, 2))
+
         const newPoint = game.grid.offsetPoint(this.player.point, this.direction, 2)
         const newTile = game.grid.getOrBorder(newPoint)
         if (newPoint == null || newTile instanceof Tiles.Wall) {
@@ -223,7 +226,6 @@ export class HopStepSpecial extends ActionSpecial {
         }
     
         this.player.point = newPoint
-        game.sendPlayerReport(new Reports.TeleportMoveActionReport(this.player, this.direction, 2))
     }
 }
 
@@ -238,6 +240,8 @@ export class PointSymmetricSpecial extends ActionSpecial {
     async resolve(game: Game) {
         await super.resolve(game)
 
+        game.sendPlayerReport(new Reports.TeleportActionReport(this.player))
+
         const newPoint = this.movePoint(game)
         const newTile = game.grid.getOrBorder(newPoint)
         if (newPoint == null || newTile instanceof Tiles.Wall) {
@@ -248,7 +252,6 @@ export class PointSymmetricSpecial extends ActionSpecial {
         }
     
         this.player.point = newPoint
-        game.sendPlayerReport(new Reports.TeleportActionReport(this.player))
     }
 
     movePoint(game: Game) {

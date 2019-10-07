@@ -202,9 +202,9 @@ export class PlayerCli extends Player {
         } else if (report instanceof Reports.DiagonalMoveActionReport) {
             console.log(`${this.emoji} moved ${Direction[report.direction]}`)
         } else if (report instanceof Reports.BumpedIntoWallActionReport) {
-            console.log(`${this.emoji} bumped into a wall`)
+            console.log(`${this.emoji} bumped into a wall and was sent back`)
         } else if (report instanceof Reports.BumpedIntoGhostActionReport) {
-            console.log(`${this.emoji} bumped into a ghost`)
+            console.log(`${this.emoji} bumped into a ghost and was sent back`)
         } else if (report instanceof Reports.TeleportMoveActionReport) {
             console.log(`${this.emoji} teleported ${report.count} spaces ${Direction[report.direction]}`)
         } else if (report instanceof Reports.BackToStartTeleportActionReport) {

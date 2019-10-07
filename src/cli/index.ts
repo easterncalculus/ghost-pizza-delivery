@@ -13,21 +13,25 @@ import { GameCli } from './game';
 import { Topping } from '../game/topping';
 
 
+const colorTopping = (emoji: string, topping: Topping | null) => {
+    switch (topping) {
+        case Topping.Cheese:
+            return chalk.bgYellow(emoji)
+        case Topping.Shrimp:
+            return chalk.bgRed(emoji)
+        case Topping.Vegtables:
+            return chalk.bgGreen(emoji)
+        default:
+            return emoji
+    }
+}
+
+
 const asciiGrid = (grid: Grid, players: PlayerCli[]) => {
     return grid.map((tile, point) => {
         const player = players.find(player => player.point == point)
         if (player) {
-            const emoji = player.emoji
-            switch (player.topping) {
-                case Topping.Cheese:
-                    return chalk.bgYellow(emoji)
-                case Topping.Shrimp:
-                    return chalk.bgRed(emoji)
-                case Topping.Vegtables:
-                    return chalk.bgGreen(emoji)
-                default:
-                    return emoji
-            }
+            return colorTopping(player.emoji, player.topping)
         } else if (tile.ghost) {
             return '👻'
         } else if (tile instanceof Tiles.Empty) {
@@ -37,31 +41,11 @@ const asciiGrid = (grid: Grid, players: PlayerCli[]) => {
         } else if (tile instanceof Tiles.Teleporter) {
             return '🌀'
         } else if (tile instanceof Tiles.Grave) {
-            return '⚰️'
+            return '⚰️ '
         } else if (tile instanceof Tiles.House) {
-            const emoji = tile.spawned ? '🏠' : '🚧'
-            switch (tile.topping) {
-                case Topping.Cheese:
-                    return chalk.bgYellow(emoji)
-                case Topping.Shrimp:
-                    return chalk.bgRed(emoji)
-                case Topping.Vegtables:
-                    return chalk.bgGreen(emoji)
-                default:
-                    return emoji
-            }
+            return colorTopping(tile.spawned ? '🏠' : '🚧', tile.topping)
         } else if (tile instanceof Tiles.Pizza) {
-            const emoji = tile.found ? '🥡' : '🍕'
-            switch (tile.topping) {
-                case Topping.Cheese:
-                    return chalk.bgYellow(emoji)
-                case Topping.Shrimp:
-                    return chalk.bgRed(emoji)
-                case Topping.Vegtables:
-                    return chalk.bgGreen(emoji)
-                default:
-                    return emoji
-            }
+            return colorTopping(tile.found ? '🥡' : '🍕', tile.topping)
         } else if (tile instanceof Tiles.Wall) {
             return '⛔'
         }

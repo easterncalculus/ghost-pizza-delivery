@@ -130,7 +130,7 @@ export abstract class Game {
             } else {
                 this.sendPlayerReport(new Reports.FoundPizzaActionReport(player, null))
             }
-        } else if (newTile instanceof Tiles.House && !newTile.spawned) {
+        } else if (newTile instanceof Tiles.House && newTile.spawned) {
             this.sendPlayerReport(new Reports.FoundHouseActionReport(player))
             if (newTile.topping === player.topping) {
                 player.won = this.playerTurn()
