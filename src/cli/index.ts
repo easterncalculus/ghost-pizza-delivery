@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 
 import program from 'commander';
+import chalk from 'chalk'
+
+import { PlayerCli } from './player';
+
 import * as Specials from '../game/actions';
 import { Deck, GameOverError } from '../game/game';
 import { Grid, randomizeGameGrid } from '../game/grid';
 import * as Tiles from '../game/tiles';
 import { GameCli } from './game';
-import { PlayerCli } from './player';
+import { Topping } from '../game/topping';
 
 
 const asciiGrid = (grid: Grid, players: PlayerCli[]) => {
@@ -25,9 +29,29 @@ const asciiGrid = (grid: Grid, players: PlayerCli[]) => {
         } else if (tile instanceof Tiles.Grave) {
             return '⚰️'
         } else if (tile instanceof Tiles.House) {
-            return tile.spawned ? '🏠' : '🚧'
+            const emoji = tile.spawned ? '🏠' : '🚧'
+            switch (tile.topping) {
+                case Topping.Cheese:
+                    return chalk.bgYellow(emoji)
+                case Topping.Shrimp:
+                    return chalk.bgRed(emoji)
+                case Topping.Vegtables:
+                    return chalk.bgGreen(emoji)
+                default:
+                    return emoji
+            }
         } else if (tile instanceof Tiles.Pizza) {
-            return tile.found ? '🥡' : '🍕'
+            const emoji = tile.found ? '🥡' : '🍕'
+            switch (tile.topping) {
+                case Topping.Cheese:
+                    return chalk.bgYellow(emoji)
+                case Topping.Shrimp:
+                    return chalk.bgRed(emoji)
+                case Topping.Vegtables:
+                    return chalk.bgGreen(emoji)
+                default:
+                    return emoji
+            }
         } else if (tile instanceof Tiles.Wall) {
             return '⛔'
         }
