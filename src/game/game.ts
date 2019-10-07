@@ -47,6 +47,25 @@ export class Deck<T> {
     }
 }
 
+export abstract class GameOverError extends Error {}
+
+export class AllPlayersWonError extends GameOverError {
+    constructor(m?: string) {
+        super(m);
+
+        // Set the prototype explicitly.
+        Object.setPrototypeOf(this, AllPlayersWonError.prototype);
+    }
+}
+
+export class ReachedMaxTurnsError extends GameOverError {
+    constructor(m?: string) {
+        super(m);
+
+        // Set the prototype explicitly.
+        Object.setPrototypeOf(this, ReachedMaxTurnsError.prototype);
+    }}
+
 export abstract class Game {
     players: Player[]
     grid: Grid
@@ -63,15 +82,24 @@ export abstract class Game {
 
     playerTurn = () => Math.floor(this.turn / this.players.length) + 1
 
+    checkAllPlayersWon = () => {
+        return this.players.every(player => player.won)
+    }
+
+    checkMaxTurnLimit = () => {
+        return this.playerTurn() > this.maxPlayerTurns
+    }
+
     loop = async () => {
-        if (this.players.every(player => player.won)) {
-            throw new Error('All players have won')
-        } else if (this.playerTurn() >= this.maxPlayerTurns) {
-            throw new Error('Reached max turns')
+        this.turn++
+        
+        if (this.checkAllPlayersWon()) {
+            throw new AllPlayersWonError()
+        } else if (this.checkMaxTurnLimit()) {
+            throw new ReachedMaxTurnsError()
         }
 
-        this.turn++
-        const player = this.players[this.turn % this.players.length]
+        const player = this.players[this.   turn % this.players.length]
         if (player.won) return
 
         this.sendPlayerReport(new Reports.TurnStartReport(player, this.playerTurn()))
@@ -95,7 +123,7 @@ export abstract class Game {
             this.sendPlayerReport(new Reports.TeleportActionReport(player))
         } else if (newTile instanceof Tiles.Pizza && !newTile.found) {
             if (player.topping === null) {
-                this.grid.spawnHouse(newTile.topping)
+                this.grid.spawnHouse(this.players, newTile.topping)
 
                 this.sendPlayerReport(new Reports.FoundPizzaActionReport(player, newTile.topping))
             } else {

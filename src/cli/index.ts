@@ -1,14 +1,12 @@
 #!/usr/bin/env node
 
 import program from 'commander';
-
-import { GameCli } from './game';
-import { PlayerCli } from './player';
-
 import * as Specials from '../game/actions';
-import { Deck } from '../game/game';
+import { Deck, GameOverError } from '../game/game';
 import { Grid, randomizeGameGrid } from '../game/grid';
 import * as Tiles from '../game/tiles';
+import { GameCli } from './game';
+import { PlayerCli } from './player';
 
 
 const asciiGrid = (grid: Grid, players: PlayerCli[]) => {
@@ -65,6 +63,10 @@ const playerEmojis = [
     '🐲',
 ]
 
+function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
 const startGame = (playerCount: number, showMap: boolean) => {
     const starterDeck = new Deck([
         Specials.BishopSpecial,
@@ -99,29 +101,48 @@ const startGame = (playerCount: number, showMap: boolean) => {
         Specials.BackToStartSpecial,
         Specials.AntiGhostBarrierSpecial,
     ], new Array(), true)
-    
-    const game = new GameCli(players, new Grid(), deck, 20)
+
+    const game = new GameCli(players, new Grid(), deck, 5)
     randomizeGameGrid(game);
 
     (async function () {
+        const replay = new Array()
+
+        const map = asciiGrid(game.grid, players)
+        replay.push(map)
         if (showMap) {
-            console.log(asciiGrid(game.grid, players));
+            console.log(map);
             console.log(' ');
         }
     
         while (true) {
             try {
                 await game.loop()
+                console.log(' ')
+
+                const map = asciiGrid(game.grid, players)
+                replay.push(map)
+                if (showMap) {
+                    console.log(map)
+                    console.log(' ')
+                }
             } catch (exception) {
-                console.error(exception)
+                if (exception instanceof GameOverError) {
+                    for (let [index, map] of replay.entries()) {
+                        if (index != 0) {
+                            process.stdout.moveCursor(0, -game.grid.height)
+                        }
+                        process.stdout.write(map + '\n')
+                        await sleep(1000)
+                    }
+                } else {
+                    console.error(exception)
+                }
                 break
             }
-            if (showMap) {
-                console.log(' ')
-                console.log(asciiGrid(game.grid, players))
-            }
-            console.log(' ')
         }
+
+        process.exit()
     })();
 }
 

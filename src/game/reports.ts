@@ -46,12 +46,11 @@ export class WinReport extends PlayerReport {
     }
 }
 
-export class RecieveSpecialReport implements PlayerReport {
-    player: Player
+export class RecieveSpecialReport extends PlayerReport {
     special: Special
 
     constructor(player: Player, special: Special) {
-        this.player = player
+        super(player)
         this.special = special
     }
 }

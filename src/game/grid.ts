@@ -124,13 +124,16 @@ export class Grid extends Array<Tiles.Tile> {
             players.every(player => startTiles.includes(player))
     }
 
-    spawnHouse = (topping: Topping) => {
+    spawnHouse = (players: Player[], topping: Topping) => {
         const housePoint = this.findIndex(tile => tile instanceof Tiles.House && tile.topping == topping)
         const houseTile = this[housePoint]
         if (!(houseTile instanceof Tiles.House)) throw new Error()
 
         this.surroundingPoints(housePoint).forEach((point) => {
             if (point == null) return
+
+            const player = players.find(player => player.point == point)
+            if (player) return
 
             const tile = this.getOrBorder(point)
             if (!(tile instanceof Tiles.Grave)) {
