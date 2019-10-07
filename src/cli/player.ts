@@ -170,7 +170,7 @@ export class PlayerCli extends Player {
 
     async recieveReport(report: Reports.Report): Promise<void> {
         if (report instanceof Reports.TurnStartReport) {
-            console.log(`${this.emoji}  turn ${report.turn}`)
+            console.log(`${this.emoji} turn ${report.turn}`)
             
             const specials = Array.from(new Set(this.specials)).map(x => {
                 return `${(x as Function).name} x${this.specials.filter(y => y === x).length}`
@@ -180,41 +180,41 @@ export class PlayerCli extends Player {
             console.log(`Pizza: ${this.topping ? Topping[this.topping] : 'None'}`)
         } else if (report instanceof Reports.TurnEndReport) {
             console.log(' ')
-            console.log(`${this.emoji}  report`)
+            console.log(`${this.emoji} report`)
             console.log(`Adjacent Walls: ${Array.from(report.walls).map(wall => Direction[wall]).join(', ') || 'None'}`)
             console.log(`Near Ghosts: ${report.nearGhosts ? 'Yes' : 'No'}`)
             console.log(`Near Pizza: ${report.nearPizza ? 'Yes' : 'No'}`)
             console.log(`Near House: ${report.nearHouse ? 'Yes' : 'No'}`)
         } else if (report instanceof Reports.WinReport) {
-            console.log(`${this.emoji}  won on turn ${report.turn}!`)
+            console.log(`${this.emoji} won on turn ${report.turn}!`)
         } else if (report instanceof Reports.RecieveSpecialReport) {
-            console.log(`${this.emoji}  recived ${(report.special as Function).name}`)
+            console.log(`${this.emoji} recived ${(report.special as Function).name}`)
         } else if (report instanceof Reports.UseSpecialReport) {
-            console.log(`${this.emoji}  used ${(report.special as Function).name}`)
+            console.log(`${this.emoji} used ${(report.special as Function).name}`)
         } else if (report instanceof Reports.AttackActionReport) {
-            console.log(`${this.emoji}  attacked ${Direction[report.direction]}`)
+            console.log(`${this.emoji} attacked ${Direction[report.direction]}`)
         } else if (report instanceof Reports.ChaseAwayGhostActionReport) {
-            console.log(`${this.emoji}  chased away a ghost`)
+            console.log(`${this.emoji} chased away a ghost`)
         } else if (report instanceof Reports.GhostNotFoundActionReport) {
-            console.log(`${this.emoji}  attack failed. There is no ghost in that square`)
+            console.log(`${this.emoji} attack failed. There is no ghost in that square`)
         } else if (report instanceof Reports.MoveActionReport) {
-            console.log(`${this.emoji}  moved ${Direction[report.direction]}`)
+            console.log(`${this.emoji} moved ${Direction[report.direction]}`)
         } else if (report instanceof Reports.DiagonalMoveActionReport) {
-            console.log(`${this.emoji}  moved ${Direction[report.direction]}`)
+            console.log(`${this.emoji} moved ${Direction[report.direction]}`)
         } else if (report instanceof Reports.BumpedIntoWallActionReport) {
-            console.log(`${this.emoji}  bumped into a wall`)
+            console.log(`${this.emoji} bumped into a wall`)
         } else if (report instanceof Reports.BumpedIntoGhostActionReport) {
-            console.log(`${this.emoji}  bumped into a ghost`)
+            console.log(`${this.emoji} bumped into a ghost`)
         } else if (report instanceof Reports.TeleportMoveActionReport) {
-            console.log(`${this.emoji}  teleported ${report.count} spaces ${Direction[report.direction]}`)
+            console.log(`${this.emoji} teleported ${report.count} spaces ${Direction[report.direction]}`)
         } else if (report instanceof Reports.BackToStartTeleportActionReport) {
-            console.log(`${this.emoji}  teleported to the start`)
+            console.log(`${this.emoji} teleported to the start`)
         } else if (report instanceof Reports.TeleportActionReport) {
-            console.log(`${this.emoji}  was teleported`)
+            console.log(`${this.emoji} was teleported`)
         } else if (report instanceof Reports.FoundPizzaActionReport) {
-            console.log(`${this.emoji}  found a pizza!`)
+            console.log(`${this.emoji} found a pizza!`)
         } else if (report instanceof Reports.FoundHouseActionReport) {
-            console.log(`${this.emoji}  found a house!`)
+            console.log(`${this.emoji} found a house!`)
         } else {
             console.log(report)
         }

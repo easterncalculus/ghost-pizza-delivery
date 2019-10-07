@@ -35,7 +35,7 @@ const asciiGrid = (grid: Grid, players: PlayerCli[]) => {
     })
         .reduce((result, value, point, array) => {
             if (point % grid.width == 0) {
-                result.push(array.slice(point, point + grid.width).join(' '))
+                result.push(array.slice(point, point + grid.width).join(''))
             }
             return result
         }, new Array())
