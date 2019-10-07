@@ -5,6 +5,7 @@ import * as Reports from "../game/reports"
 
 import { Player } from "../game/player"
 import * as Actions from "../game/actions"
+import { Topping } from "../game/topping"
 
 
 export class PlayerCli extends Player {
@@ -176,9 +177,10 @@ export class PlayerCli extends Player {
             }).join(', ') || 'None'
             console.log(`Specials: ${specials}`)
 
-            console.log(`Pizza: ${this.topping || 'None'}`)
+            console.log(`Pizza: ${this.topping ? Topping[this.topping] : 'None'}`)
         } else if (report instanceof Reports.TurnEndReport) {
             console.log(' ')
+            console.log(`${this.emoji}  report`)
             console.log(`Adjacent Walls: ${Array.from(report.walls).map(wall => Direction[wall]).join(', ') || 'None'}`)
             console.log(`Near Ghosts: ${report.nearGhosts ? 'Yes' : 'No'}`)
             console.log(`Near Pizza: ${report.nearPizza ? 'Yes' : 'No'}`)
@@ -212,7 +214,7 @@ export class PlayerCli extends Player {
         } else if (report instanceof Reports.FoundPizzaActionReport) {
             console.log(`${this.emoji}  found a pizza!`)
         } else if (report instanceof Reports.FoundHouseActionReport) {
-            console.log(`${this.emoji}  found a house`)
+            console.log(`${this.emoji}  found a house!`)
         } else {
             console.log(report)
         }

@@ -123,7 +123,8 @@ export abstract class Game {
             this.sendPlayerReport(new Reports.TeleportActionReport(player))
         } else if (newTile instanceof Tiles.Pizza && !newTile.found) {
             if (player.topping === null) {
-                this.grid.spawnHouse(this.players, newTile.topping)
+                player.topping = newTile.topping
+                this.grid.spawnHouse(this.players, newTile)
 
                 this.sendPlayerReport(new Reports.FoundPizzaActionReport(player, newTile.topping))
             } else {
