@@ -13,6 +13,7 @@ export class Grid extends Array<Tiles.Tile> {
     width: number
     height: number
     random: Random
+    border = new Tiles.Border()
 
     constructor(width = 7, height = 7) {
         super()
@@ -95,7 +96,7 @@ export class Grid extends Array<Tiles.Tile> {
     }
     
     getOrBorder = (point: number | null) => {
-        return point ? this[point] : null ?? new Tiles.Border()
+        return point ? this[point] : null ?? this.border
     }
 
     randomPoint = (condition: ([point, tile]: [number, Tiles.Tile]) => boolean) => {
