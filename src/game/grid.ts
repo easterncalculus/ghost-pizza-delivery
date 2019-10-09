@@ -15,11 +15,11 @@ export class Grid extends Array<Tiles.Tile> {
     random: Random
     border = new Tiles.Border()
 
-    constructor(width = 7, height = 7) {
+    constructor(width = 7, height = 7, random: Random = new Random()) {
         super()
         this.width = width
         this.height = height
-        this.random = new Random()
+        this.random = random
 
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
