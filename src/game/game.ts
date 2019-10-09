@@ -92,52 +92,21 @@ export abstract class Game {
 
     loop = async () => {
         this.turn++
-        
         if (this.checkAllPlayersWon()) {
             throw new AllPlayersWonError()
         } else if (this.checkMaxTurnLimit()) {
             throw new ReachedMaxTurnsError()
         }
 
-        const player = this.players[this.   turn % this.players.length]
+        const player = this.players[this.turn % this.players.length]
         if (player.won) return
 
         this.sendPlayerReport(new Reports.TurnStartReport(player, this.playerTurn()))
-        const oldPoint = player.point
     
         const action = await player.handleTurn()
         await action.resolve(this)
 
-        if (player.point != oldPoint) {
-            this.afterPlayerMove(player)
-        }
-
         this.sendPlayerTurnEndReport(player)
-    }
-
-    afterPlayerMove(player: Player) {
-        const newTile = this.grid.getOrBorder(player.point)
-        if (newTile instanceof Tiles.Teleporter) {
-            player.point = newTile.nextPoint
-            
-            this.sendPlayerReport(new Reports.TeleportActionReport(player))
-        } else if (newTile instanceof Tiles.Pizza && !newTile.found) {
-            if (player.topping === null) {
-                player.topping = newTile.topping
-                this.grid.spawnHouse(this.players, newTile)
-
-                this.sendPlayerReport(new Reports.FoundPizzaActionReport(player, newTile.topping))
-            } else {
-                this.sendPlayerReport(new Reports.FoundPizzaActionReport(player, null))
-            }
-        } else if (newTile instanceof Tiles.House && newTile.spawned) {
-            this.sendPlayerReport(new Reports.FoundHouseActionReport(player))
-            if (newTile.topping === player.topping) {
-                player.won = this.playerTurn()
-
-                this.sendPlayerReport(new Reports.WinReport(player, this.playerTurn()))
-            }
-        }
     }
 
     sendPlayerTurnEndReport = (player: Player) => {
@@ -146,15 +115,15 @@ export abstract class Game {
         
         const walls: Set<Direction> = new Set(
             wu(this.grid.adjacentTiles(point).entries())
-                .filter(([_, tile]) => tile instanceof Tiles.Wall)
+                .filter(([_, tile]) => tile.reportAsWall())
                 .map(([direction, _]) => direction)
         )
         const nearGhosts = wu(surroundingTiles.values())
-            .some(tile => tile.ghost)
+            .some(tile => tile.reportGhost())
         const nearPizza = wu(surroundingTiles.values())
-            .some(tile => tile instanceof Tiles.Pizza && !tile.found)
+            .some(tile => tile.reportAsPizza())
         const nearHouse = wu(surroundingTiles.values())
-            .some(tile => tile instanceof Tiles.House && tile.spawned)
+            .some(tile => tile.reportAsHouse())
         
         this.sendPlayerReport(new Reports.TurnEndReport(player, walls, nearGhosts, nearPizza, nearHouse))
     }

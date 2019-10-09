@@ -15,9 +15,13 @@ export abstract class Player {
     // remove special if used
     abstract async handleUseAntiGhostBarrierSpecial(): Promise<boolean>
 
-    abstract async handleBackToStartSpecial(): Promise<Actions.AttackAction | Actions.MoveAction | Actions.SkipAction>
+    abstract async handleBackToStartSpecial(): Promise<Actions.Action>
 
     abstract async recieveReport(report: Report): Promise<void>
+
+    hasSpecial(special: Actions.Special) {
+        return this.specials.includes(special)
+    }
 
     addSpecial(special: Actions.Special) {
         this.specials.push(special)
