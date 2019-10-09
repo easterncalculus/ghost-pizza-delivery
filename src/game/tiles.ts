@@ -146,7 +146,7 @@ export class Pizza extends BaseTile {
         if (!this.found) {
             if (player.topping === null) {
                 player.topping = this.topping
-                game.grid.spawnHouse(game.players, this)
+                game.spawnHouse(game.players, this)
 
                 game.sendPlayerReport(new Reports.FoundPizzaActionReport(player, this.topping))
             } else {
@@ -220,7 +220,14 @@ export class Teleporter extends BaseTile {
 }
 
 export class Grave extends BaseTile {
-    ghost = true
+    _ghost = true
+    get ghost() { return this._ghost }
+    set ghost(value) {
+        // don't respawn ghosts
+        if (this._ghost && !value) {
+            this._ghost = value
+        }
+    }
 
     isValid(grid: Grid, point: number) { return true }
 }

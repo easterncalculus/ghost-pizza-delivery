@@ -119,7 +119,7 @@ export abstract class Game {
                 .map(([direction, _]) => direction)
         )
         const nearGhosts = wu(surroundingTiles.values())
-            .some(tile => tile.reportGhost())
+            .some(tile => tile.reportAsGhost())
         const nearPizza = wu(surroundingTiles.values())
             .some(tile => tile.reportAsPizza())
         const nearHouse = wu(surroundingTiles.values())
@@ -136,5 +136,26 @@ export abstract class Game {
             player.addSpecial(special)
             this.sendPlayerReport(new Reports.RecieveSpecialReport(player, special))
         }
+    }
+
+    spawnHouse = (players: Player[], pizzaTile: Tiles.Pizza) => {
+        if (pizzaTile.found) throw new Error()
+        pizzaTile.found = true
+
+        const housePoint = this.grid.findIndex(tile => tile instanceof Tiles.House && tile.topping == pizzaTile.topping)
+        const houseTile = this.grid[housePoint]
+        if (!(houseTile instanceof Tiles.House)) throw new Error()
+        else if (houseTile.spawned) throw new Error()
+
+        this.grid.surroundingPoints(housePoint).forEach((point) => {
+            if (point == null) return
+
+            const player = players.find(player => player.point == point)
+            if (player) return
+
+            const tile = this.grid.getOrBorder(point)
+            tile.ghost = true
+        })
+        houseTile.spawned = true
     }
 }
