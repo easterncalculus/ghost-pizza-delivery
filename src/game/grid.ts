@@ -21,7 +21,7 @@ export class Grid extends Array<Tiles.Tile> {
         this.random = new Random()
 
         for (let y = 0; y < height; y++) {
-            for (let x = 0; x < height; x++) {
+            for (let x = 0; x < width; x++) {
                 const point = this.pointFromXY(x, y)
                 if (point == null) throw new Error()
 
