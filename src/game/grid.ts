@@ -1,4 +1,5 @@
 import wu from 'wu'
+import { Random } from 'random-js'
 
 import { Direction } from './directions'
 import { Topping } from './topping'
@@ -6,7 +7,6 @@ import { Topping } from './topping'
 import { Game } from './game'
 import { Player } from './player'
 import * as Tiles from './tiles'
-import { Random } from 'random-js'
 
 
 export class Grid extends Array<Tiles.Tile> {
@@ -21,22 +21,20 @@ export class Grid extends Array<Tiles.Tile> {
         this.height = height
         this.random = random
 
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
-                this.push(new Tiles.Empty())
-            }
+        for (let i = 0; i < width * height; i++) {
+            this.push(new Tiles.Empty())
         }
     }
 
     pointFromXY = (x: number, y: number) => {
         if (x < 0 || y < 0 || x >= this.width || y >= this.height) return null
 
-        return (y * this.height) + x
+        return (y * this.width) + x
     }
 
     pointToXY = (point: number) => {
-        const y = Math.floor(point / this.height)
-        const x = point - (y * this.height)
+        const y = Math.floor(point / this.width)
+        const x = point - (y * this.width)
 
         return [x, y]
     }

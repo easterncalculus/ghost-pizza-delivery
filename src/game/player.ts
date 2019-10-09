@@ -4,7 +4,7 @@ import { Report } from "./reports"
 
 
 export abstract class Player {
-    point: number = 0
+    point: number = -1
     topping: Topping | null = null
     specials: Actions.Special[] = []
     won: number | null = null
