@@ -65,14 +65,6 @@ export class Grid extends Array<Tiles.Tile> {
         }
     }
 
-    isAdjacentEmpty = (point: number) => {
-        const tile = this.getOrBorder(point)
-        return tile instanceof Tiles.Empty && !tile.safe &&
-            wu(this.adjacentPoints(point).values()).every((adjacentPoint) => {
-                return this.getOrBorder(adjacentPoint) instanceof Tiles.Empty
-            })
-    }
-
     adjacentPoints = (point: number): Map<Direction, number | null> => {
         return new Map([
             [Direction.North, this.offsetPoint(point, Direction.North)],
@@ -149,12 +141,20 @@ export class Grid extends Array<Tiles.Tile> {
 }
 
 export function randomizeGameGrid(game: Game, walls = 4, graves = 6, teleports = 3) {
+    const isAdjacentEmpty = (grid: Grid, point: number) => {
+        const tile = grid.getOrBorder(point)
+        return tile instanceof Tiles.Empty && !tile.safe &&
+            wu(grid.adjacentPoints(point).values()).every((adjacentPoint) => {
+                return grid.getOrBorder(adjacentPoint) instanceof Tiles.Empty
+            })
+    }
+
     const initPlayers = (grid: Grid, players: Player[]) => {
         if (players.length <= 1)
             throw new Error('Not enough players')
 
         players.forEach((player) => {
-            const point = grid.randomPoint(([point, _]) => grid.isAdjacentEmpty(point))
+            const point = grid.randomPoint(([point, _]) => isAdjacentEmpty(grid, point))
             player.point = point
 
             grid[point] = new Tiles.Start(player)
