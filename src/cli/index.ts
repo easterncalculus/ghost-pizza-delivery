@@ -121,9 +121,10 @@ const startGame = (playerCount: number, showMap: boolean) => {
     ], new Array(), true)
 
     const game = new GameCli(players, new Grid(), deck, 20)
-    randomizeGameGrid(game);
+    randomizeGameGrid(game)
 
-    (async function () {
+    ;(async function () {
+        console.log(`Players: ${players.map(player => player.emoji).join(' ')}\n`)
         const replay = new Array()
 
         const map = asciiGrid(game.grid, players)
@@ -146,12 +147,14 @@ const startGame = (playerCount: number, showMap: boolean) => {
                 }
             } catch (exception) {
                 if (exception instanceof GameOverError) {
-                    for (let [index, map] of replay.entries()) {
-                        if (index != 0) {
-                            process.stdout.moveCursor(0, -game.grid.height)
+                    while (true) {
+                        for (let [index, map] of replay.entries()) {
+                            if (index != 0) {
+                                process.stdout.moveCursor(0, -game.grid.height)
+                            }
+                            process.stdout.write(map + '\n')
+                            await sleep(1000)
                         }
-                        process.stdout.write(map + '\n')
-                        await sleep(1000)
                     }
                 } else {
                     console.error(exception)

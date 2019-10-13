@@ -94,7 +94,7 @@ export class Grid extends Array<Tiles.Tile> {
     }
     
     getOrBorder = (point: number | null) => {
-        return point ? this[point] : null ?? this.border
+        return (point !== null ? this[point] : null) ?? this.border
     }
 
     randomPoint = (condition: ([point, tile]: [number, Tiles.Tile]) => boolean) => {

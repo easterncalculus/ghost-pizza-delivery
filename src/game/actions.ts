@@ -120,7 +120,6 @@ export class RookSpecial extends ActionSpecial {
             offset--
             newPoint = this.movePoint(game, offset)
             newTile = game.grid.getOrBorder(newPoint)
-            console.log(offset, newPoint, newTile)
         }
     
         game.sendPlayerReport(new Reports.TeleportMoveActionReport(this.player, this.direction, offset))
