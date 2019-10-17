@@ -10,10 +10,10 @@ import * as Tiles from './tiles'
 
 
 export class Grid extends Array<Tiles.Tile> {
-    width: number
-    height: number
-    random: Random
-    border = new Tiles.Border()
+    readonly width: number
+    readonly height: number
+    readonly random: Random
+    readonly border = new Tiles.Border()
 
     constructor(width = 7, height = 7, random: Random = new Random()) {
         super()
@@ -94,7 +94,7 @@ export class Grid extends Array<Tiles.Tile> {
     }
     
     getOrBorder = (point: number | null) => {
-        return (point !== null ? this[point] : null) ?? this.border
+        return this[point ?? -1] ?? this.border
     }
 
     randomPoint = (condition: ([point, tile]: [number, Tiles.Tile]) => boolean) => {
@@ -113,7 +113,10 @@ export class Grid extends Array<Tiles.Tile> {
     }
 }
 
-export function randomizeGameGrid(game: Game, walls = 4, graves = 6, teleports = 3) {
+export function randomizeGameGrid(
+    game: Game,
+    {walls = 4, graves = 6, teleports = 3, monkey = 0, pigs = 0, crow = 0, manhole = 0} = {walls: 4, graves: 6, teleports: 3, monkey: 0, pigs: 0, crow: 0, manhole: 0}
+) {
     const isAdjacentEmpty = (grid: Grid, point: number) => {
         const tile = grid.getOrBorder(point)
         return tile instanceof Tiles.Empty && !tile.safe &&
@@ -169,9 +172,35 @@ export function randomizeGameGrid(game: Game, walls = 4, graves = 6, teleports =
         }
     }
 
+    const pathToAllNodes = (grid: Grid, point: number, tile: Tiles.Tile, visitedPoints: Set<number>, ignorePoint: number) => {
+        if (tile instanceof Tiles.Wall || ignorePoint == point || visitedPoints.has(point)) return visitedPoints
+
+        visitedPoints.add(point)
+        wu(grid.adjacentPoints(point).values()).forEach(adjacentPoint => {
+            if (adjacentPoint == null) return
+            
+            pathToAllNodes(grid, adjacentPoint, grid.getOrBorder(adjacentPoint), visitedPoints, ignorePoint)
+        })
+        return visitedPoints
+    }
+
+    const areAllNodesVisitable = (grid: Grid, point: number) => {
+        const allVisitableNodes = wu(grid.entries())
+            .filter(([otherPoint, tile]) => !(tile instanceof Tiles.Wall || otherPoint == point))
+            .map(([otherPoint, _]) => otherPoint)
+            .toArray()
+        if (allVisitableNodes.length == 0) return false
+
+        const startPoint = allVisitableNodes[0]
+        const allVisitedNodes = pathToAllNodes(grid, startPoint, grid.getOrBorder(startPoint), new Set(), point)
+        return isSetsEqual(new Set(allVisitableNodes), allVisitedNodes)
+    }
+
+    const isSetsEqual = (a: Set<number>, b: Set<number>) => a.size === b.size && [...a].every(value => b.has(value));
+
     const initWalls = (grid: Grid, count: number) => {
         for (let _ = 0; _ < count; _++) {
-            const point = grid.randomPoint(([_, tile]) => tile instanceof Tiles.Empty && !tile.safe)
+            const point = grid.randomPoint(([randomPoint, tile]) => tile instanceof Tiles.Empty && !tile.safe && areAllNodesVisitable(grid, randomPoint))
             grid[point] = new Tiles.Wall()
         }
     }
@@ -190,6 +219,38 @@ export function randomizeGameGrid(game: Game, walls = 4, graves = 6, teleports =
         grid[nextPoint] = new Tiles.Teleporter(firstPoint)
     }
 
+    const initMonkey = (grid: Grid, count: number) => {
+        for (let _ = 0; _ < count; _++) {
+            const point = grid.randomPoint(([randomPoint, tile]) => tile instanceof Tiles.Empty && !tile.safe)
+            grid[point] = new Tiles.Monkey()
+        }
+    }
+
+    const initCrow = (grid: Grid, count: number) => {
+        for (let _ = 0; _ < count; _++) {
+            const point = grid.randomPoint(([randomPoint, tile]) => tile instanceof Tiles.Empty && !tile.safe)
+            grid[point] = new Tiles.Crow()
+        }
+    }
+
+    const initPigs = (grid: Grid, count: number) => {
+        if (count == 0) return
+
+        const point = grid.randomPoint(([randomPoint, tile]) => tile instanceof Tiles.Empty && !tile.safe)
+        grid[point] = new Tiles.Pig(true)
+        for (let _ = 0; _ < count; _++) {
+            const point = grid.randomPoint(([randomPoint, tile]) => tile instanceof Tiles.Empty && !tile.safe)
+            grid[point] = new Tiles.Pig(false)
+        }
+    }
+
+    const initManhole = (grid: Grid, count: number) => {
+        for (let _ = 0; _ < count; _++) {
+            const point = grid.randomPoint(([randomPoint, tile]) => tile instanceof Tiles.Empty && !tile.safe)
+            grid[point] = new Tiles.ManholeCover()
+        }
+    }
+
     const grid = game.grid
     const players = game.players
 
@@ -198,4 +259,8 @@ export function randomizeGameGrid(game: Game, walls = 4, graves = 6, teleports =
     initGhosts(grid, graves)
     initWalls(grid, walls)
     initTeleporters(grid, teleports)
+    initMonkey(grid, monkey)
+    initCrow(grid, crow)
+    initPigs(grid, pigs)
+    initManhole(grid, manhole)
 }

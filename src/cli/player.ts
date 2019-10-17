@@ -6,10 +6,12 @@ import * as Reports from "../game/reports"
 import { Player } from "../game/player"
 import * as Actions from "../game/actions"
 import { Topping } from "../game/topping"
+import { sleep } from "../util"
+import { Token } from "../game/token"
 
 
 export class PlayerCli extends Player {
-    emoji: string
+    readonly emoji: string
 
     constructor(ascii: string, specials: Actions.Special[]) {
         super()
@@ -177,14 +179,53 @@ export class PlayerCli extends Player {
             }).join(', ') || 'None'
             console.log(`Specials: ${specials}`)
 
+            const tokens = Array.from(new Set(this.tokens)).map(token => {
+                return `${Token[token]} x${this.tokens.filter(y => y === token).length}`
+            }).join(', ') || 'None'
+            console.log(`Tokens: ${tokens}`)
+
             console.log(`Pizza: ${this.topping ? Topping[this.topping] : 'None'}`)
+            console.log(' ')
         } else if (report instanceof Reports.TurnEndReport) {
             console.log(' ')
-            console.log(`${this.emoji} report`)
-            console.log(`Adjacent Walls: ${Array.from(report.walls).map(wall => Direction[wall]).join(', ') || 'None'}`)
-            console.log(`Near Ghosts: ${report.nearGhosts ? 'Yes' : 'No'}`)
-            console.log(`Near Pizza: ${report.nearPizza ? 'Yes' : 'No'}`)
-            console.log(`Near House: ${report.nearHouse ? 'Yes' : 'No'}`)
+
+            console.log(`${this.emoji} report:`)
+            const specials = Array.from(new Set(this.specials)).map(x => {
+                return `${(x as Function).name} x${this.specials.filter(y => y === x).length}`
+            }).join(', ') || 'None'
+            console.log(`Specials: ${specials}`)
+
+            const tokens = Array.from(new Set(this.tokens)).map(token => {
+                return `${Token[token]} x${this.tokens.filter(y => y === token).length}`
+            }).join(', ') || 'None'
+            console.log(`Tokens: ${tokens}`)
+
+            console.log(`Pizza: ${this.topping ? Topping[this.topping] : 'None'}`)
+            console.log(' ')
+
+            console.log(`Adjacent Walls: ${Array.from(report.walls).map(direction => Direction[direction]).join(', ') || 'None'}`)
+            if (report.ghosts instanceof Set) {
+                console.log(`Near Ghosts: ${Array.from(report.ghosts).map(direction => Direction[direction]).join(', ') || 'None'}`)
+            } else {
+                console.log(`Near Ghosts: ${report.ghosts ? 'Yes' : 'No'}`)
+            }
+            if (report.pizza instanceof Set) {
+                console.log(`Near Pizza: ${Array.from(report.pizza).map(direction => Direction[direction]).join(', ') || 'None'}`)
+            } else {
+                console.log(`Near Pizza: ${report.pizza ? 'Yes' : 'No'}`)
+            }
+            if (report.houses instanceof Set) {
+                console.log(`Near Houses: ${Array.from(report.houses).map(direction => Direction[direction]).join(', ') || 'None'}`)
+            } else {
+                console.log(`Near Houses: ${report.houses ? 'Yes' : 'No'}`)
+            }
+
+            console.log(' ')
+            await inquirer.prompt([{
+                type: 'confirm',
+                name: 'confirm',
+                message: 'Next Player',
+            }])
         } else if (report instanceof Reports.WinReport) {
             console.log(`${this.emoji} won on turn ${report.turn}!`)
         } else if (report instanceof Reports.RecieveSpecialReport) {
@@ -193,28 +234,42 @@ export class PlayerCli extends Player {
             console.log(`${this.emoji} used ${(report.special as Function).name}`)
         } else if (report instanceof Reports.AttackActionReport) {
             console.log(`${this.emoji} attacked ${Direction[report.direction]}`)
-        } else if (report instanceof Reports.ChaseAwayGhostActionReport) {
+        } else if (report instanceof Reports.ChaseAwayGhostPlayerReport) {
             console.log(`${this.emoji} chased away a ghost`)
-        } else if (report instanceof Reports.GhostNotFoundActionReport) {
+        } else if (report instanceof Reports.GhostNotFoundPlayerReport) {
             console.log(`${this.emoji} attack failed. There is no ghost in that square`)
         } else if (report instanceof Reports.MoveActionReport) {
             console.log(`${this.emoji} moved ${Direction[report.direction]}`)
         } else if (report instanceof Reports.DiagonalMoveActionReport) {
             console.log(`${this.emoji} moved ${Direction[report.direction]}`)
-        } else if (report instanceof Reports.BumpedIntoWallActionReport) {
+        } else if (report instanceof Reports.BumpedIntoWallPlayerReport) {
             console.log(`${this.emoji} bumped into a wall and was sent back`)
-        } else if (report instanceof Reports.BumpedIntoGhostActionReport) {
+        } else if (report instanceof Reports.BumpedIntoGhostPlayerReport) {
             console.log(`${this.emoji} bumped into a ghost and was sent back`)
         } else if (report instanceof Reports.TeleportMoveActionReport) {
             console.log(`${this.emoji} teleported ${report.count} spaces ${Direction[report.direction]}`)
         } else if (report instanceof Reports.BackToStartTeleportActionReport) {
             console.log(`${this.emoji} teleported to the start`)
-        } else if (report instanceof Reports.TeleportActionReport) {
+        } else if (report instanceof Reports.TeleporterPlayerReport) {
+            console.log(`${this.emoji} entered a teleporter`)
+        } else if (report instanceof Reports.TeleportPlayerReport) {
             console.log(`${this.emoji} was teleported`)
-        } else if (report instanceof Reports.FoundPizzaActionReport) {
-            console.log(`${this.emoji} found a pizza!`)
-        } else if (report instanceof Reports.FoundHouseActionReport) {
+        } else if (report instanceof Reports.FoundPizzaPlayerReport) {
+            console.log(`${this.emoji} found a ${report.topping ? Topping[report.topping] + ' ' : ''}pizza!`)
+        } else if (report instanceof Reports.FoundHousePlayerReport) {
             console.log(`${this.emoji} found a house!`)
+        } else if (report instanceof Reports.PigFoundPlayerReport) {
+            console.log(`${this.emoji} found a ${report.parent ? 'rather large' : 'little'} Pig. OINK!`)
+        } else if (report instanceof Reports.MonkeyFoundPlayerReport) {
+            console.log(`${this.emoji} found a monkey. yack-yack!`)
+        } else if (report instanceof Reports.CrowAttackedPlayerReport) {
+            console.log(`${this.emoji} attacked a crow.`)
+        } else if (report instanceof Reports.CrowTeleportPlayerReport) {
+            console.log(`${this.emoji} was teleported to the nearest signboard.`)
+        } else if (report instanceof Reports.ManholeCoverPlayerReport) {
+            console.log(`${this.emoji} found a pizza!`)
+            await sleep(1000)
+            console.log(`... on closer inspection its a manhole cover`)
         } else {
             console.log(report)
         }

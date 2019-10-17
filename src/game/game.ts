@@ -8,6 +8,7 @@ import { Grid } from './grid'
 import { Player } from './player'
 import * as Tiles from './tiles'
 import { Special } from './actions'
+import { Token } from './token'
 
 export class Deck<T> {
     drawPile: T[]
@@ -67,9 +68,9 @@ export class ReachedMaxTurnsError extends GameOverError {
     }}
 
 export abstract class Game {
-    players: Player[]
-    grid: Grid
-    specials: Deck<Special>
+    readonly players: Player[]
+    readonly grid: Grid
+    readonly specials: Deck<Special>
     turn = -1
     maxPlayerTurns: number
 
@@ -101,40 +102,50 @@ export abstract class Game {
         const player = this.players[this.turn % this.players.length]
         if (player.won) return
 
-        this.sendPlayerReport(new Reports.TurnStartReport(player, this.playerTurn()))
+        await this.sendPlayerReport(new Reports.TurnStartReport(player, this.playerTurn()))
     
         const action = await player.handleTurn()
         await action.resolve(this)
 
-        this.sendPlayerTurnEndReport(player)
+        await this.sendPlayerTurnEndReport(player)
     }
 
-    sendPlayerTurnEndReport = (player: Player) => {
+    sendPlayerTurnEndReport = async (player: Player) => {
         const point = player.point
+        const adjacentTiles = this.grid.adjacentTiles(point)
         const surroundingTiles = this.grid.surroundingTiles(point)
         
         const walls: Set<Direction> = new Set(
-            wu(this.grid.adjacentTiles(point).entries())
+            wu(adjacentTiles.entries())
                 .filter(([_, tile]) => tile.reportAsWall())
                 .map(([direction, _]) => direction)
         )
-        const nearGhosts = wu(surroundingTiles.values())
+        const ghosts = wu(surroundingTiles.values())
             .some(tile => tile.reportAsGhost())
-        const nearPizza = wu(surroundingTiles.values())
-            .some(tile => tile.reportAsPizza())
-        const nearHouse = wu(surroundingTiles.values())
+        let pizza: boolean | Set<Direction>
+        if (player.hasToken(Token.Monkey)) {
+            pizza = new Set(
+                wu(surroundingTiles.entries())
+                    .filter(([_, tile]) => tile.reportAsPizza())
+                    .map(([direction, _]) => direction)
+            )
+        } else {
+            pizza = wu(surroundingTiles.values())
+                .some(tile => tile.reportAsPizza())
+        }
+        const houses = wu(surroundingTiles.values())
             .some(tile => tile.reportAsHouse())
         
-        this.sendPlayerReport(new Reports.TurnEndReport(player, walls, nearGhosts, nearPizza, nearHouse))
+        await this.sendPlayerReport(new Reports.TurnEndReport(player, walls, ghosts, pizza, houses))
     }
 
-    abstract sendPlayerReport(report: Reports.Report): void
+    abstract async sendPlayerReport(report: Reports.Report): Promise<void>
 
-    givePlayerSpecial(player: Player) {
+    async givePlayerSpecial(player: Player) {
         const special = this.specials.draw()
         if (special) {
             player.addSpecial(special)
-            this.sendPlayerReport(new Reports.RecieveSpecialReport(player, special))
+            await this.sendPlayerReport(new Reports.RecieveSpecialReport(player, special))
         }
     }
 

@@ -6,7 +6,7 @@ import { Special } from './actions'
 export interface Report {}
 
 export abstract class PlayerReport implements Report {
-    player: Player
+    readonly player: Player
 
     constructor(player: Player) {
         this.player = player
@@ -14,7 +14,7 @@ export abstract class PlayerReport implements Report {
 }
 
 export class TurnStartReport extends PlayerReport {
-    turn: number
+    readonly turn: number
 
     constructor(player: Player, turn: number) {
         super(player)
@@ -23,22 +23,22 @@ export class TurnStartReport extends PlayerReport {
 }
 
 export class TurnEndReport extends PlayerReport {
-    walls: Set<Direction>
-    nearGhosts: boolean
-    nearPizza: boolean
-    nearHouse: boolean
+    readonly walls: Set<Direction>
+    readonly ghosts: boolean | Set<Direction>
+    readonly pizza: boolean | Set<Direction>
+    readonly houses: boolean | Set<Direction>
 
-    constructor(player: Player, walls: Set<Direction>, nearGhosts: boolean, nearPizza: boolean, nearHouse: boolean) {
+    constructor(player: Player, walls: Set<Direction>, ghosts: boolean, pizza: boolean | Set<Direction>, houses: boolean) {
         super(player)
         this.walls = walls
-        this.nearGhosts = nearGhosts
-        this.nearPizza = nearPizza
-        this.nearHouse = nearHouse
+        this.ghosts = ghosts
+        this.pizza = pizza
+        this.houses = houses
     }
 }
 
 export class WinReport extends PlayerReport {
-    turn: number
+    readonly turn: number
     
     constructor(player: Player, turn: number) {
         super(player)
@@ -47,7 +47,7 @@ export class WinReport extends PlayerReport {
 }
 
 export class RecieveSpecialReport extends PlayerReport {
-    special: Special
+    readonly special: Special
 
     constructor(player: Player, special: Special) {
         super(player)
@@ -56,7 +56,7 @@ export class RecieveSpecialReport extends PlayerReport {
 }
 
 export class UseSpecialReport extends PlayerReport {
-    special: Special
+    readonly special: Special
 
     constructor(player: Player, special: Special) {
         super(player)
@@ -67,7 +67,7 @@ export class UseSpecialReport extends PlayerReport {
 export abstract class ActionReport extends PlayerReport {}
 
 export class AttackActionReport extends ActionReport {
-    direction: OrthogonalDirections
+    readonly direction: OrthogonalDirections
 
     constructor(player: Player, direction: OrthogonalDirections) {
         super(player)
@@ -76,7 +76,7 @@ export class AttackActionReport extends ActionReport {
 }
 
 export class MoveActionReport extends ActionReport {
-    direction: OrthogonalDirections
+    readonly direction: OrthogonalDirections
 
     constructor(player: Player, direction: OrthogonalDirections) {
         super(player)
@@ -85,8 +85,8 @@ export class MoveActionReport extends ActionReport {
 }
 
 export class TeleportMoveActionReport extends ActionReport {
-    direction: Direction
-    count: number
+    readonly direction: Direction
+    readonly count: number
 
     constructor(player: Player, direction: Direction, count: number) {
         super(player)
@@ -96,7 +96,7 @@ export class TeleportMoveActionReport extends ActionReport {
 }
 
 export class DiagonalMoveActionReport extends ActionReport {
-    direction: DiagonalDirections
+    readonly direction: DiagonalDirections
 
     constructor(player: Player, direction: DiagonalDirections) {
         super(player)
@@ -106,10 +106,12 @@ export class DiagonalMoveActionReport extends ActionReport {
 
 export class BackToStartTeleportActionReport extends ActionReport {}
 
-export class TeleportActionReport extends ActionReport {}
+export class TeleporterPlayerReport extends PlayerReport {}
 
-export class FoundPizzaActionReport extends ActionReport {
-    topping: Topping | null
+export class TeleportPlayerReport extends PlayerReport {}
+
+export class FoundPizzaPlayerReport extends PlayerReport {
+    readonly topping: Topping | null
 
     constructor(player: Player, topping: Topping | null) {
         super(player)
@@ -117,12 +119,29 @@ export class FoundPizzaActionReport extends ActionReport {
     }
 }
 
-export class FoundHouseActionReport extends ActionReport {}
+export class FoundHousePlayerReport extends PlayerReport {}
 
-export class BumpedIntoWallActionReport extends ActionReport {}
+export class BumpedIntoWallPlayerReport extends PlayerReport {}
 
-export class BumpedIntoGhostActionReport extends ActionReport {}
+export class BumpedIntoGhostPlayerReport extends PlayerReport {}
 
-export class ChaseAwayGhostActionReport extends ActionReport {}
+export class ChaseAwayGhostPlayerReport extends PlayerReport {}
 
-export class GhostNotFoundActionReport extends ActionReport {}
+export class GhostNotFoundPlayerReport extends PlayerReport {}
+
+export class PigFoundPlayerReport extends PlayerReport {
+    readonly parent: boolean
+
+    constructor(player: Player, parent: boolean) {
+        super(player)
+        this.parent = parent
+    }
+}
+
+export class MonkeyFoundPlayerReport extends PlayerReport {}
+
+export class CrowAttackedPlayerReport extends PlayerReport {}
+
+export class CrowTeleportPlayerReport extends PlayerReport {}
+
+export class ManholeCoverPlayerReport extends PlayerReport {}
