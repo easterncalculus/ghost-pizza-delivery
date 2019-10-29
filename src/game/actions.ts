@@ -199,7 +199,7 @@ export class PointSymmetricSpecial extends ActionSpecial {
         const [x, y] = game.grid.pointToXY(this.player.point)
         const width = game.grid.width
         const height = game.grid.height
-        return game.grid.pointFromXY(width - x - 1, height - y)
+        return game.grid.pointFromXY(width - x - 1, height - y - 1)
     }
 }
 
