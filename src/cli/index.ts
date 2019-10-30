@@ -128,7 +128,7 @@ const startGame = async (playerCount: number,
     ], new Array(), true)
 
     const game = new GameCli(players, new Grid(), deck, 20)
-    randomizeGameGrid(game, {teleports: 10, crow, monkey, pigs, manhole})
+    randomizeGameGrid(game, {crow, monkey, pigs, manhole})
 
     console.log(`Players: ${players.map(player => player.emoji).join(' ')}\n`)
     const replay = new Array()
@@ -178,10 +178,10 @@ program
   .description("")
   .option('-p, --players <number>', 'number of players', parseInt)
   .option('-m, --map', 'show map', false)
-  .option('--crow', '', parseInt)
-  .option('--monkey', '', parseInt)
-  .option('--pigs', '', parseInt)
-  .option('--manhole', '', parseInt)
+  .option('--crow', 'add crow special tile', parseInt)
+  .option('--monkey', 'add monkey special tile', parseInt)
+  .option('--pigs', 'add pig special tile', parseInt)
+  .option('--manhole', 'add manhole special tile', parseInt)
   .parse(process.argv);
 
 startGame(program.players, {
