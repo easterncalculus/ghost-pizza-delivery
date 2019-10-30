@@ -27,7 +27,7 @@ export class PlayerCli extends Player {
                     type: 'list',
                     name: 'turn',
                     message: 'What would you like to do?',
-                    choices: ['move', 'attack', 'special', 'skip']
+                    choices: ['move', 'attack', 'special', 'skip', 'end game']
                 }])
                 switch (input.turn) {
                     case 'move':
@@ -38,6 +38,8 @@ export class PlayerCli extends Player {
                         return await this.handleSpecial()
                     case 'skip':
                         return new Actions.SkipAction(this)
+                    case 'end game':
+                        return new Actions.EndGameAction(this)
                     default:
                         console.log(`Invalid choice: ${input.turn}`)
                 }
@@ -148,13 +150,13 @@ export class PlayerCli extends Player {
         return input.confirm
     }
 
-    async handleBackToStartSpecial(): Promise<Actions.AttackAction | Actions.MoveAction | Actions.SkipAction> {
+    async handleBackToStartSpecial(): Promise<Actions.AttackAction | Actions.MoveAction | Actions.SkipAction | Actions.EndGameAction> {
         while (true) {
             const input = await inquirer.prompt([{
                 type: 'list',
                 name: 'turn',
                 message: 'What would you like to do?',
-                choices: ['move', 'attack', 'skip']
+                choices: ['move', 'attack', 'skip', 'end game']
             }])
             switch (input.turn) {
                 case 'move':
@@ -163,6 +165,8 @@ export class PlayerCli extends Player {
                     return new Actions.AttackAction(this, await this.handleOrthologicalDirection())
                 case 'skip':
                     return new Actions.SkipAction(this)
+                case 'end game':
+                    return new Actions.EndGameAction(this)
                 default:
                     console.log(`Invalid choice: ${input.turn}`)
             }

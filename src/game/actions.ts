@@ -20,6 +20,12 @@ export class SkipAction extends Action {
     async resolve(game: Game) {}
 }
 
+export class EndGameAction extends Action {
+    async resolve(game: Game) {
+        game.turn = game.maxPlayerTurns
+    }
+}
+
 export class AttackAction extends Action {
     direction: OrthogonalDirections
 
