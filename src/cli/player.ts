@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 import inquirer from "inquirer"
 import chalk from "chalk"
+=======
+import prompts from "prompts"
+>>>>>>> 08bb7da8d9e7da2aacfca686383f14a36b68953d
 
 import { OrthogonalDirections, Direction, DiagonalDirections } from "../game/directions"
 import * as Reports from "../game/reports"
@@ -7,10 +11,12 @@ import * as Reports from "../game/reports"
 import { Player } from "../game/player"
 import * as Actions from "../game/actions"
 import { Topping } from "../game/topping"
+import { sleep } from "../util"
+import { Token } from "../game/token"
 
 
 export class PlayerCli extends Player {
-    emoji: string
+    readonly emoji: string
 
     constructor(ascii: string, specials: Actions.Special[]) {
         super()
@@ -23,12 +29,19 @@ export class PlayerCli extends Player {
     async handleTurn(): Promise<Actions.Action> {
         while (true) {
             try {
-                const input = await inquirer.prompt([{
-                    type: 'list',
+                const input = await prompts({
+                    type: 'select',
                     name: 'turn',
                     message: 'What would you like to do?',
+<<<<<<< HEAD
                     choices: ['move', 'attack', 'special', 'skip', 'end game']
                 }])
+=======
+                    choices: ['move', 'attack', 'special', 'skip'].map(value => {
+                        return {title: value, value: value}
+                    }),
+                })
+>>>>>>> 08bb7da8d9e7da2aacfca686383f14a36b68953d
                 switch (input.turn) {
                     case 'move':
                         return new Actions.MoveAction(this, await this.handleOrthologicalDirection())
@@ -49,26 +62,25 @@ export class PlayerCli extends Player {
 
     async handleSpecial(): Promise<Actions.Action> {
         while (true) {
-            const input = await inquirer.prompt([{
-                type: 'list',
+            const input = await prompts({
+                type: 'select',
                 name: 'special',
                 message: 'Which special?',
-                choices: () => {
-                    const values = Array.from([
-                        ['bishop', Actions.BishopSpecial],
-                        ['rook', Actions.RookSpecial],
-                        ['diagonal', Actions.DiagonalSpecial],
-                        ['hopstep', Actions.HopStepSpecial],
-                        ['rotate', Actions.PointSymmetricSpecial],
-                        ['start', Actions.BackToStartSpecial],
-                    ].filter(([_, value]) => {
-                        return (this.specials.includes(value))
-                    }).map(value => value[0]))
-                    values.push('cancel')
-
-                    return values
-                }
-            }])
+                choices: ([
+                    ['bishop', Actions.BishopSpecial],
+                    ['rook', Actions.RookSpecial],
+                    ['diagonal', Actions.DiagonalSpecial],
+                    ['hopstep', Actions.HopStepSpecial],
+                    ['rotate', Actions.PointSymmetricSpecial],
+                    ['start', Actions.BackToStartSpecial],
+                    ['cancel', null]
+                ] as [string, typeof Actions.ActionSpecial?][])
+                    .filter(value => value[1] ? this.hasSpecial(value[1]) : true)
+                    .map(value => {
+                        return {title: value[0], value: value[0]}
+                    })
+            })
+            
             switch (input.special) {
                 case 'bishop':
                     return new Actions.BishopSpecial(this, await this.handleDiagonalDirection())
@@ -92,12 +104,14 @@ export class PlayerCli extends Player {
 
     async handleOrthologicalDirection(): Promise<OrthogonalDirections> {
         while (true) {
-            const input = await inquirer.prompt([{
-                type: 'list',
+            const input = await prompts({
+                type: 'select',
                 name: 'direction',
                 message: 'Which direction?',
-                choices: ['north', 'east', 'south', 'west', 'cancel']
-            }])
+                choices: ['north', 'east', 'south', 'west', 'cancel'].map(value => {
+                    return {title: value, value: value}
+                })
+            })
             switch (input.direction) {
                 case 'north':
                     return Direction.North
@@ -117,12 +131,14 @@ export class PlayerCli extends Player {
 
     async handleDiagonalDirection(): Promise<DiagonalDirections> {
         while (true) {
-            const input = await inquirer.prompt([{
-                type: 'list',
+            const input = await prompts({
+                type: 'select',
                 name: 'direction',
                 message: 'Which direction?',
-                choices: ['northeast', 'southeast', 'southwest', 'northwest', 'cancel']
-            }])
+                choices: ['northeast', 'southeast', 'southwest', 'northwest', 'cancel'].map(value => {
+                    return {title: value, value: value}
+                })
+            })
             switch (input.direction) {
                 case 'northeast':
                     return Direction.NorthEast
@@ -142,7 +158,7 @@ export class PlayerCli extends Player {
 
     // remove special if used
     async handleUseAntiGhostBarrierSpecial(): Promise<boolean> {
-        const input = await inquirer.prompt([{
+        const input = await prompts([{
             type: 'confirm',
             name: 'confirm',
             message: 'Use Anti-Ghost Barrier?',
@@ -152,11 +168,13 @@ export class PlayerCli extends Player {
 
     async handleBackToStartSpecial(): Promise<Actions.AttackAction | Actions.MoveAction | Actions.SkipAction | Actions.EndGameAction> {
         while (true) {
-            const input = await inquirer.prompt([{
-                type: 'list',
+            const input = await prompts([{
+                type: 'select',
                 name: 'turn',
                 message: 'What would you like to do?',
-                choices: ['move', 'attack', 'skip', 'end game']
+                choices: ['move', 'attack', 'skip', 'end game'].map(value => {
+                    return {title: value, value: value}
+                })
             }])
             switch (input.turn) {
                 case 'move':
@@ -182,14 +200,53 @@ export class PlayerCli extends Player {
             }).join(', ') || 'None'
             console.log(`Specials: ${specials}`)
 
+            const tokens = Array.from(new Set(this.tokens)).map(token => {
+                return `${Token[token]} x${this.tokens.filter(y => y === token).length}`
+            }).join(', ') || 'None'
+            console.log(`Tokens: ${tokens}`)
+
             console.log(`Pizza: ${this.topping ? Topping[this.topping] : 'None'}`)
+            console.log(' ')
         } else if (report instanceof Reports.TurnEndReport) {
             console.log(' ')
-            console.log(`${this.emoji} report`)
-            console.log(`Adjacent Walls: ${Array.from(report.walls).map(wall => Direction[wall]).join(', ') || chalk.bgRed('None')}`)
-            console.log(`Near Ghosts: ${report.nearGhosts ? chalk.bgGreen('Yes') : chalk.bgRed('No')}`)
-            console.log(`Near Pizza: ${report.nearPizza ? chalk.bgGreen('Yes') : chalk.bgRed('No')}`)
-            console.log(`Near House: ${report.nearHouse ? chalk.bgGreen('Yes') : chalk.bgRed('No')}`)
+
+            console.log(`${this.emoji} report:`)
+            const specials = Array.from(new Set(this.specials)).map(x => {
+                return `${(x as Function).name} x${this.specials.filter(y => y === x).length}`
+            }).join(', ') || 'None'
+            console.log(`Specials: ${specials}`)
+
+            const tokens = Array.from(new Set(this.tokens)).map(token => {
+                return `${Token[token]} x${this.tokens.filter(y => y === token).length}`
+            }).join(', ') || 'None'
+            console.log(`Tokens: ${tokens}`)
+
+            console.log(`Pizza: ${this.topping ? Topping[this.topping] : 'None'}`)
+            console.log(' ')
+
+            console.log(`Adjacent Walls: ${Array.from(report.walls).map(direction => Direction[direction]).join(', ') || chalk.bgRed('None')}`)
+            if (report.ghosts instanceof Set) {
+                console.log(`Near Ghosts: ${Array.from(report.ghosts).map(direction => Direction[direction]).join(', ') || chalk.bgRed('None')}`)
+            } else {
+                console.log(`Near Ghosts: ${report.ghosts ? chalk.bgGreen('Yes') : chalk.bgRed('No')}`)
+            }
+            if (report.pizza instanceof Set) {
+                console.log(`Near Pizza: ${Array.from(report.pizza).map(direction => Direction[direction]).join(', ') || chalk.bgRed('None')}`)
+            } else {
+                console.log(`Near Pizza: ${report.pizza ? chalk.bgGreen('Yes') : chalk.bgRed('No')}`)
+            }
+            if (report.houses instanceof Set) {
+                console.log(`Near Houses: ${Array.from(report.houses).map(direction => Direction[direction]).join(', ') || chalk.bgRed('None')}`)
+            } else {
+                console.log(`Near Houses: ${report.houses ? chalk.bgGreen('Yes') : chalk.bgRed('No')}`)
+            }
+
+            console.log(' ')
+            await prompts([{
+                type: 'confirm',
+                name: 'confirm',
+                message: 'Next Player',
+            }])
         } else if (report instanceof Reports.WinReport) {
             console.log(`Congratulations! ${this.emoji} delivered their pizza on turn ${report.turn}!`)
         } else if (report instanceof Reports.ReceiveSpecialReport) {
@@ -198,32 +255,46 @@ export class PlayerCli extends Player {
             console.log(chalk.magenta(`${this.emoji} used ${(report.special as Function).name}`))
         } else if (report instanceof Reports.AttackActionReport) {
             console.log(`${this.emoji} attacked ${Direction[report.direction]}`)
-        } else if (report instanceof Reports.ChaseAwayGhostActionReport) {
+        } else if (report instanceof Reports.ChaseAwayGhostPlayerReport) {
             console.log(chalk.red(`${this.emoji} chased away a ghost`))
-        } else if (report instanceof Reports.GhostNotFoundActionReport) {
+        } else if (report instanceof Reports.GhostNotFoundPlayerReport) {
             console.log(chalk.bgRed(`${this.emoji} attack failed. There is no ghost in that square`))
         } else if (report instanceof Reports.MoveActionReport) {
             console.log(`${this.emoji} moved ${Direction[report.direction]}`)
         } else if (report instanceof Reports.DiagonalMoveActionReport) {
             console.log(`${this.emoji} moved ${Direction[report.direction]}`)
-        } else if (report instanceof Reports.BumpedIntoWallActionReport) {
+        } else if (report instanceof Reports.BumpedIntoWallPlayerReport) {
             console.log(chalk.bgRed(`${this.emoji} bumped into a wall and was sent back`))
-        } else if (report instanceof Reports.BumpedIntoGhostActionReport) {
+        } else if (report instanceof Reports.BumpedIntoGhostPlayerReport) {
             console.log(chalk.bgRed(`${this.emoji} bumped into a ghost and was sent back`))
         } else if (report instanceof Reports.TeleportMoveActionReport) {
             console.log(chalk.magenta(`${this.emoji} teleported ${report.count} spaces ${Direction[report.direction]}`))
         } else if (report instanceof Reports.BackToStartTeleportActionReport) {
             console.log(chalk.magenta(`${this.emoji} teleported to their starting space`))
-        } else if (report instanceof Reports.TeleportActionReport) {
+        } else if (report instanceof Reports.TeleportPlayerReport) {
             console.log(chalk.bgMagenta.bold(`${this.emoji} was teleported!!`))
-        } else if (report instanceof Reports.FoundPizzaActionReport) {
+        } else if (report instanceof Reports.FoundPizzaPlayerReport) {
             if(report.topping){
-                console.log(chalk.bgBlue.bold(`${this.emoji} found a pizza! It's the ${report.topping ? Topping[report.topping] : 'None'} pizza`))
+                console.log(chalk.bgBlue.bold(`${this.emoji} found a pizza! It's the ${report.topping ? Topping[report.topping] : 'None'} pizza!`))
             } else {
-                console.log(chalk.blue(`${this.emoji} found a pizza! But they already have the ${report.player.topping ? Topping[report.player.topping] : 'None'} pizza`))
+                console.log(chalk.blue(`${this.emoji} found a pizza! But they already have the ${report.player.topping ? Topping[report.player.topping] : 'None'} pizza...`))
             }
-        } else if (report instanceof Reports.FoundHouseActionReport) {
+        } else if (report instanceof Reports.FoundHousePlayerReport) {
             console.log(chalk.blue(`${this.emoji} found a house!`))
+        } else if (report instanceof Reports.TeleporterPlayerReport) {
+            console.log(`${this.emoji} entered a teleporter`)
+        } else if (report instanceof Reports.PigFoundPlayerReport) {
+            console.log(chalk.cyan(`${this.emoji} found a ${report.parent ? 'rather large' : 'little'} Pig. OINK!`))
+        } else if (report instanceof Reports.MonkeyFoundPlayerReport) {
+            console.log(chalk.cyan(`${this.emoji} found a monkey. yack-yack!`))
+        } else if (report instanceof Reports.CrowAttackedPlayerReport) {
+            console.log(chalk.cyan(`${this.emoji} attacked a crow.`))
+        } else if (report instanceof Reports.CrowTeleportPlayerReport) {
+            console.log(`${this.emoji} was teleported to the nearest signboard.`)
+        } else if (report instanceof Reports.ManholeCoverPlayerReport) {
+            console.log(chalk.bgBlue.bold(`${this.emoji} found a pizza! It's the...`))
+            await sleep(1000)
+            console.log(chalk.bgRed.bold(`... on closer inspection, it's just a manhole cover`))
         } else {
             console.log(report)
         }

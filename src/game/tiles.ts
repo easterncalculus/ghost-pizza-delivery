@@ -7,6 +7,7 @@ import { Grid } from './grid'
 import { Player } from './player'
 import * as Reports from './reports'
 import { AntiGhostBarrierSpecial } from './actions'
+import { Token } from './token'
 
 export interface Tile {
     ghost: boolean
@@ -21,7 +22,8 @@ export interface Tile {
 }
 
 export abstract class BaseTile implements Tile {
-    abstract ghost: boolean
+    get ghost() { return false }
+    set ghost(_: boolean) {}
 
     abstract isValid(grid: Grid, point: number): boolean
 
@@ -35,7 +37,7 @@ export abstract class BaseTile implements Tile {
         if (teleport) {
             this.ghost = false
         } else if (this.ghost) {
-            game.sendPlayerReport(new Reports.BumpedIntoGhostActionReport(player))
+            await game.sendPlayerReport(new Reports.BumpedIntoGhostPlayerReport(player))
 
             if (!player.hasSpecial(AntiGhostBarrierSpecial)) return
 
@@ -43,10 +45,10 @@ export abstract class BaseTile implements Tile {
             if (!useSpecial) return
 
             player.removeSpecial(AntiGhostBarrierSpecial)
-            game.sendPlayerReport(new Reports.UseSpecialReport(player, AntiGhostBarrierSpecial))
+            await game.sendPlayerReport(new Reports.UseSpecialReport(player, AntiGhostBarrierSpecial))
 
             this.ghost = false
-            game.sendPlayerReport(new Reports.ChaseAwayGhostActionReport(player))
+            await game.sendPlayerReport(new Reports.ChaseAwayGhostPlayerReport(player))
         }
         player.point = point
     }
@@ -54,10 +56,10 @@ export abstract class BaseTile implements Tile {
     async onAttackAt(game: Game, player: Player, point: number | null): Promise<void> {
         if (this.ghost) {
             this.ghost = false
-            game.sendPlayerReport(new Reports.ChaseAwayGhostActionReport(player))
-            game.givePlayerSpecial(player)
+            await game.sendPlayerReport(new Reports.ChaseAwayGhostPlayerReport(player))
+            await game.givePlayerSpecial(player)
         } else {
-            game.sendPlayerReport(new Reports.GhostNotFoundActionReport(player))
+            await game.sendPlayerReport(new Reports.GhostNotFoundPlayerReport(player))
         }
     }
 
@@ -85,10 +87,8 @@ export class Empty extends BaseTile {
 }
 
 export class Start extends BaseTile {
-    get ghost() { return false }
-    set ghost(_: boolean) {}
+    readonly player: Player
 
-    player: Player
     constructor(player: Player) {
         super()
         this.player = player
@@ -101,9 +101,6 @@ export class Start extends BaseTile {
 }
 
 export class Wall extends BaseTile {
-    get ghost() { return false }
-    set ghost(_: boolean) {}
-
     isValid(grid: Grid, point: number) { return true }
 
     canMoveTo(game: Game, player: Player, point: number | null, teleport: boolean): boolean {
@@ -111,7 +108,7 @@ export class Wall extends BaseTile {
     }
 
     async onMoveTo(game: Game, player: Player, point: number | null, teleport: boolean): Promise<void> {
-        game.sendPlayerReport(new Reports.BumpedIntoWallActionReport(player))
+        await game.sendPlayerReport(new Reports.BumpedIntoWallPlayerReport(player))
     }
 
     reportAsWall(): boolean {
@@ -122,10 +119,8 @@ export class Wall extends BaseTile {
 export class Border extends Wall {}
 
 export class Pizza extends BaseTile {
-    topping: Topping
+    readonly topping: Topping
     found = false
-    get ghost() { return false }
-    set ghost(_: boolean) {}
 
     constructor(topping: Topping) {
         super()
@@ -145,13 +140,13 @@ export class Pizza extends BaseTile {
         player.point = point
         if (!this.found) {
             if (player.topping === null) {
+                this.found = true
                 player.topping = this.topping
                 game.spawnHouse(game.players, this)
 
-                game.sendPlayerReport(new Reports.FoundPizzaActionReport(player, this.topping))
+                await game.sendPlayerReport(new Reports.FoundPizzaPlayerReport(player, this.topping))
             } else {
-                this.found = true
-                game.sendPlayerReport(new Reports.FoundPizzaActionReport(player, null))
+                await game.sendPlayerReport(new Reports.FoundPizzaPlayerReport(player, null))
             }
         }
     }
@@ -162,10 +157,8 @@ export class Pizza extends BaseTile {
 }
 
 export class House extends BaseTile {
-    topping: Topping
+    readonly topping: Topping
     spawned = false
-    get ghost() { return false }
-    set ghost(_: boolean) {}
 
     constructor(topping: Topping) {
         super()
@@ -184,11 +177,11 @@ export class House extends BaseTile {
 
         player.point = point
         if (this.spawned) {
-            game.sendPlayerReport(new Reports.FoundHouseActionReport(player))
+            await game.sendPlayerReport(new Reports.FoundHousePlayerReport(player))
             if (this.topping === player.topping) {
                 player.won = game.playerTurn()
 
-                game.sendPlayerReport(new Reports.WinReport(player, game.playerTurn()))
+                await game.sendPlayerReport(new Reports.WinReport(player, game.playerTurn()))
             }
         }
     }
@@ -199,9 +192,7 @@ export class House extends BaseTile {
 }
 
 export class Teleporter extends BaseTile {
-    nextPoint: number
-    get ghost() { return false }
-    set ghost(_: boolean) {}
+    readonly nextPoint: number
 
     constructor(nextPoint: number) {
         super()
@@ -215,7 +206,8 @@ export class Teleporter extends BaseTile {
     async onMoveTo(game: Game, player: Player, point: number | null, teleport: boolean): Promise<void> {
         player.point = this.nextPoint
 
-        game.sendPlayerReport(new Reports.TeleportActionReport(player))
+        await game.sendPlayerReport(new Reports.TeleporterPlayerReport(player))
+        await game.sendPlayerReport(new Reports.TeleportPlayerReport(player))
     }
 }
 
@@ -230,4 +222,95 @@ export class Grave extends BaseTile {
     }
 
     isValid(grid: Grid, point: number) { return true }
+}
+
+export class Pig extends BaseTile {
+    readonly parent: boolean
+
+    constructor(parent: boolean) {
+        super()
+        this.parent = parent
+    }
+
+    isValid(grid: Grid, point: number) { return true }
+
+    async onMoveTo(game: Game, player: Player, point: number | null, teleport: boolean): Promise<void> {
+        await super.onMoveTo(game, player, point, teleport)
+        await game.sendPlayerReport(new Reports.PigFoundPlayerReport(player, this.parent))
+    }
+}
+
+export class Monkey extends BaseTile {
+    found = false
+
+    isValid(grid: Grid, point: number) { return true }
+
+    async onMoveTo(game: Game, player: Player, point: number | null, teleport: boolean): Promise<void> {
+        await super.onMoveTo(game, player, point, teleport)
+        if (this.found) return
+
+        this.found = true
+        player.addToken(Token.Monkey)
+        await game.sendPlayerReport(new Reports.MonkeyFoundPlayerReport(player))
+    }
+}
+
+export class Crow extends BaseTile {
+    found = false
+
+    isValid(grid: Grid, point: number) { return true }
+
+    async onAttackAt(game: Game, player: Player, point: number | null): Promise<void> {
+        if (this.found || point == null) {
+            await super.onAttackAt(game, player, point)
+            return
+        }
+
+        await game.sendPlayerReport(new Reports.CrowAttackedPlayerReport(player))
+
+        this.found = true
+        player.addToken(Token.Crow)
+
+        const pointXY = game.grid.pointToXY(point)
+        const houses = wu(game.grid.entries())
+            .filter(([_, tile]) => tile instanceof House)
+            .map(([housePoint, tile]) => {
+                const housePointXY = game.grid.pointToXY(housePoint)
+                return [housePoint, tile, Math.abs(pointXY[0] - housePointXY[0]) + Math.abs(pointXY[1] - housePointXY[1])]
+            })
+            .toArray() as [number, House, number][]
+        
+        houses.sort(([pointA, tileA, distanceA], [pointB, tileB, distanceB]): any => {
+            if (distanceA > distanceB) {
+                return 1
+            } else if (distanceA < distanceB) {
+                return -1
+            }
+
+            if (tileA.topping > tileB.topping) {
+                return 1
+            } else if (tileA.topping < tileB.topping) {
+                return -1
+            }
+
+            return 0
+        })
+
+        const value = houses[0]
+        if (!value) return
+
+        player.point = value[0]
+        await game.sendPlayerReport(new Reports.CrowTeleportPlayerReport(player))
+    }
+}
+
+export class ManholeCover extends BaseTile {
+    isValid(grid: Grid, point: number) { return true }
+
+    async onMoveTo(game: Game, player: Player, point: number | null, teleport: boolean): Promise<void> {
+        await super.onMoveTo(game, player, point, teleport)
+        await game.sendPlayerReport(new Reports.ManholeCoverPlayerReport(player))
+    }
+
+    reportAsPizza() { return true }
 }

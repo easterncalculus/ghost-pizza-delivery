@@ -11,6 +11,7 @@ import { Grid, randomizeGameGrid } from '../game/grid';
 import * as Tiles from '../game/tiles';
 import { GameCli } from './game';
 import { Topping } from '../game/topping';
+import { sleep } from '../util';
 
 
 const colorTopping = (emoji: string, topping: Topping | null) => {
@@ -19,7 +20,7 @@ const colorTopping = (emoji: string, topping: Topping | null) => {
             return chalk.bgYellow(emoji)
         case Topping.Shrimp:
             return chalk.bgRed(emoji)
-        case Topping.Vegtables:
+        case Topping.Vegtable:
             return chalk.bgGreen(emoji)
         default:
             return emoji
@@ -48,6 +49,14 @@ const asciiGrid = (grid: Grid, players: PlayerCli[]) => {
             return colorTopping(tile.found ? '🥡' : '🍕', tile.topping)
         } else if (tile instanceof Tiles.Wall) {
             return '⛔'
+        } else if (tile instanceof Tiles.Crow) {
+            return tile.found ? '🆓' : '🦜'
+        } else if (tile instanceof Tiles.Monkey) {
+            return tile.found ? '🆓' : '🐒'
+        } else if (tile instanceof Tiles.Pig) {
+            return '🐖'
+        } else if (tile instanceof Tiles.ManholeCover) {
+            return 'Ⓜ️ '
         }
         throw new Error(tile.constructor.name)
     })
@@ -81,11 +90,32 @@ const playerEmojis = [
     '🐲',
 ]
 
-function sleep(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-const startGame = (playerCount: number, showMap: boolean) => {
+const startGame = async (
+    playerCount: number,
+    {
+        showMap = false,
+        width = 7,
+        height = 7,
+        walls = 4,
+        graves = 6,
+        teleporters = 3,
+        crows = 0,
+        monkeys = 0,
+        pigs = 0,
+        manholes = 0,
+    } = {
+        showMap: false,
+        width: 7,
+        height: 7,
+        walls: 4,
+        graves: 6,
+        teleporters: 3,
+        crows: 0,
+        monkeys: 0,
+        pigs: 0,
+        manholes: 0,
+    }
+) => {
     const starterDeck = new Deck([
         Specials.BishopSpecial,
         Specials.RookSpecial,
@@ -120,51 +150,58 @@ const startGame = (playerCount: number, showMap: boolean) => {
         Specials.AntiGhostBarrierSpecial,
     ], new Array(), true)
 
-    const game = new GameCli(players, new Grid(), deck, 20)
-    randomizeGameGrid(game)
+    const game = new GameCli(players, new Grid(width, height), deck, 20)
+    randomizeGameGrid(game, {
+        walls,
+        graves,
+        teleporters,
+        crows,
+        monkeys,
+        pigs,
+        manholes,
+    })
 
-    ;(async function () {
-        console.log(`Players: ${players.map(player => player.emoji).join(' ')}\n`)
-        const replay = new Array()
+    console.log(`Players: ${players.map(player => player.emoji).join(' ')}\n`)
+    const replay = new Array()
 
-        const map = asciiGrid(game.grid, players)
-        replay.push(map)
-        if (showMap) {
-            console.log(map);
-            console.log(' ');
-        }
-    
-        while (true) {
-            try {
-                await game.loop()
+    const map = asciiGrid(game.grid, players)
+    replay.push(map)
+    if (showMap) {
+        console.log(map);
+        console.log(' ');
+    }
+
+    while (true) {
+        try {
+            await game.loop()
+            console.log(' ')
+
+            const map = asciiGrid(game.grid, players)
+            replay.push(map)
+            if (showMap) {
+                console.log(map)
                 console.log(' ')
-
-                const map = asciiGrid(game.grid, players)
-                replay.push(map)
-                if (showMap) {
-                    console.log(map)
-                    console.log(' ')
-                }
-            } catch (exception) {
-                if (exception instanceof GameOverError) {
-                    while (true) {
-                        for (let [index, map] of replay.entries()) {
-                            if (index != 0) {
-                                process.stdout.moveCursor(0, -game.grid.height)
-                            }
-                            process.stdout.write(map + '\n')
-                            await sleep(1000)
-                        }
-                    }
-                } else {
-                    console.error(exception)
-                }
-                break
             }
+        } catch (exception) {
+            if (exception instanceof GameOverError) {
+                while (true) {
+                    for (let [index, map] of replay.entries()) {
+                        if (index != 0) {
+                            process.stdout.moveCursor(0, -game.grid.height)
+                        }
+                        process.stdout.write(map + '\n')
+                        await sleep(1000)
+                    }
+                    await sleep(1000)
+                }
+            } else {
+                console.error(exception)
+            }
+            break
         }
+    }
 
-        process.exit()
-    })();
+    process.exit()
 }
 
 program
@@ -172,6 +209,26 @@ program
   .description("")
   .option('-p, --players <number>', 'number of players', parseInt)
   .option('-m, --map', 'show map', false)
+  .option('--width <number>', 'width of map', parseInt)
+  .option('--height <number>', 'height of map', parseInt)
+  .option('--walls <number>', 'number of wall tiles', parseInt)
+  .option('--graves <number>', 'number of grave tiles', parseInt)
+  .option('--teleporters <number>', 'number of teleporter tiles', parseInt)
+  .option('--crows <number>', 'number of crow special tiles', parseInt)
+  .option('--monkeys <number>', 'number of monkey special tiles', parseInt)
+  .option('--pigs <number>', 'number of pig special tiles', parseInt)
+  .option('--manholes <number>', 'number of manhole special tiles', parseInt)
   .parse(process.argv);
 
-startGame(program.players, program.map)
+startGame(program.players, {
+    showMap: program.map,
+    width: program.width,
+    height: program.height,
+    walls: program.walls,
+    graves: program.graves,
+    teleporters: program.teleporters,
+    crows: program.crows,
+    monkeys: program.monkeys,
+    pigs: program.pigs,
+    manholes: program.manholes,
+})
