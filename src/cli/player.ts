@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-import inquirer from "inquirer"
-import chalk from "chalk"
-=======
 import prompts from "prompts"
->>>>>>> 08bb7da8d9e7da2aacfca686383f14a36b68953d
+import chalk from "chalk"
 
 import { OrthogonalDirections, Direction, DiagonalDirections } from "../game/directions"
 import * as Reports from "../game/reports"
@@ -33,15 +29,10 @@ export class PlayerCli extends Player {
                     type: 'select',
                     name: 'turn',
                     message: 'What would you like to do?',
-<<<<<<< HEAD
-                    choices: ['move', 'attack', 'special', 'skip', 'end game']
-                }])
-=======
-                    choices: ['move', 'attack', 'special', 'skip'].map(value => {
+                    choices: ['move', 'attack', 'special', 'skip', 'end game'].map(value => {
                         return {title: value, value: value}
                     }),
                 })
->>>>>>> 08bb7da8d9e7da2aacfca686383f14a36b68953d
                 switch (input.turn) {
                     case 'move':
                         return new Actions.MoveAction(this, await this.handleOrthologicalDirection())
