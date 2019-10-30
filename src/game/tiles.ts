@@ -140,12 +140,12 @@ export class Pizza extends BaseTile {
         player.point = point
         if (!this.found) {
             if (player.topping === null) {
+                this.found = true
                 player.topping = this.topping
                 game.spawnHouse(game.players, this)
 
                 await game.sendPlayerReport(new Reports.FoundPizzaPlayerReport(player, this.topping))
             } else {
-                this.found = true
                 await game.sendPlayerReport(new Reports.FoundPizzaPlayerReport(player, null))
             }
         }
