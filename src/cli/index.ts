@@ -90,8 +90,31 @@ const playerEmojis = [
     '🐲',
 ]
 
-const startGame = async (playerCount: number,
-    {showMap = false, crow = 1, monkey = 1, pigs = 3, manhole = 1} = {showMap: false, crow: 0, monkey: 0, pigs: 0, manhole: 0, }
+const startGame = async (
+    playerCount: number,
+    {
+        showMap = false,
+        width = 7,
+        height = 7,
+        walls = 4,
+        graves = 6,
+        teleporters = 3,
+        crows = 0,
+        monkeys = 0,
+        pigs = 0,
+        manholes = 0,
+    } = {
+        showMap: false,
+        width: 7,
+        height: 7,
+        walls: 4,
+        graves: 6,
+        teleporters: 3,
+        crows: 0,
+        monkeys: 0,
+        pigs: 0,
+        manholes: 0,
+    }
 ) => {
     const starterDeck = new Deck([
         Specials.BishopSpecial,
@@ -127,8 +150,16 @@ const startGame = async (playerCount: number,
         Specials.AntiGhostBarrierSpecial,
     ], new Array(), true)
 
-    const game = new GameCli(players, new Grid(), deck, 20)
-    randomizeGameGrid(game, {crow, monkey, pigs, manhole})
+    const game = new GameCli(players, new Grid(width, height), deck, 20)
+    randomizeGameGrid(game, {
+        walls,
+        graves,
+        teleporters,
+        crows,
+        monkeys,
+        pigs,
+        manholes,
+    })
 
     console.log(`Players: ${players.map(player => player.emoji).join(' ')}\n`)
     const replay = new Array()
@@ -178,16 +209,26 @@ program
   .description("")
   .option('-p, --players <number>', 'number of players', parseInt)
   .option('-m, --map', 'show map', false)
-  .option('--crow', 'add crow special tile', parseInt)
-  .option('--monkey', 'add monkey special tile', parseInt)
-  .option('--pigs', 'add pig special tile', parseInt)
-  .option('--manhole', 'add manhole special tile', parseInt)
+  .option('--width <number>', 'width of map', parseInt)
+  .option('--height <number>', 'height of map', parseInt)
+  .option('--walls <number>', 'number of wall tiles', parseInt)
+  .option('--graves <number>', 'number of grave tiles', parseInt)
+  .option('--teleporters <number>', 'number of teleporter tiles', parseInt)
+  .option('--crows <number>', 'number of crow special tiles', parseInt)
+  .option('--monkeys <number>', 'number of monkey special tiles', parseInt)
+  .option('--pigs <number>', 'number of pig special tiles', parseInt)
+  .option('--manholes <number>', 'number of manhole special tiles', parseInt)
   .parse(process.argv);
 
 startGame(program.players, {
     showMap: program.map,
-    crow: program.crow,
-    monkey: program.monkey,
+    width: program.width,
+    height: program.height,
+    walls: program.walls,
+    graves: program.graves,
+    teleporters: program.teleporters,
+    crows: program.crows,
+    monkeys: program.monkeys,
     pigs: program.pigs,
-    manhole: program.manhole,
+    manholes: program.manholes,
 })

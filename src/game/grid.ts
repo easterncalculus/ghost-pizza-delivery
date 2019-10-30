@@ -115,7 +115,23 @@ export class Grid extends Array<Tiles.Tile> {
 
 export function randomizeGameGrid(
     game: Game,
-    {walls = 4, graves = 6, teleports = 3, monkey = 0, pigs = 0, crow = 0, manhole = 0} = {walls: 4, graves: 6, teleports: 3, monkey: 0, pigs: 0, crow: 0, manhole: 0}
+    {
+        walls = 4,
+        graves = 6,
+        teleporters = 3,
+        monkeys = 0,
+        pigs = 0,
+        crows = 0,
+        manholes = 0,
+    } = {
+        walls: 4,
+        graves: 6,
+        teleporters: 3,
+        monkeys: 0,
+        pigs: 0,
+        crows: 0,
+        manholes: 0,
+    }
 ) {
     const isAdjacentEmpty = (grid: Grid, point: number) => {
         const tile = grid.getOrBorder(point)
@@ -258,9 +274,9 @@ export function randomizeGameGrid(
     initPizza(grid, players.length)
     initGhosts(grid, graves)
     initWalls(grid, walls)
-    initTeleporters(grid, teleports)
-    initMonkey(grid, monkey)
-    initCrow(grid, crow)
+    initTeleporters(grid, teleporters)
+    initMonkey(grid, monkeys)
+    initCrow(grid, crows)
     initPigs(grid, pigs)
-    initManhole(grid, manhole)
+    initManhole(grid, manholes)
 }
