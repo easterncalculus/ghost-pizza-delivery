@@ -1,4 +1,4 @@
-import inquirer from "inquirer"
+import prompts from "prompts"
 
 import { OrthogonalDirections, Direction, DiagonalDirections } from "../game/directions"
 import * as Reports from "../game/reports"
@@ -24,12 +24,14 @@ export class PlayerCli extends Player {
     async handleTurn(): Promise<Actions.Action> {
         while (true) {
             try {
-                const input = await inquirer.prompt([{
-                    type: 'list',
+                const input = await prompts({
+                    type: 'select',
                     name: 'turn',
                     message: 'What would you like to do?',
-                    choices: ['move', 'attack', 'special', 'skip']
-                }])
+                    choices: ['move', 'attack', 'special', 'skip'].map(value => {
+                        return {title: value, value: value}
+                    }),
+                })
                 switch (input.turn) {
                     case 'move':
                         return new Actions.MoveAction(this, await this.handleOrthologicalDirection())
@@ -48,26 +50,25 @@ export class PlayerCli extends Player {
 
     async handleSpecial(): Promise<Actions.Action> {
         while (true) {
-            const input = await inquirer.prompt([{
-                type: 'list',
+            const input = await prompts({
+                type: 'select',
                 name: 'special',
                 message: 'Which special?',
-                choices: () => {
-                    const values = Array.from([
-                        ['bishop', Actions.BishopSpecial],
-                        ['rook', Actions.RookSpecial],
-                        ['diagonal', Actions.DiagonalSpecial],
-                        ['hopstep', Actions.HopStepSpecial],
-                        ['rotate', Actions.PointSymmetricSpecial],
-                        ['start', Actions.BackToStartSpecial],
-                    ].filter(([_, value]) => {
-                        return (this.specials.includes(value))
-                    }).map(value => value[0]))
-                    values.push('cancel')
-
-                    return values
-                }
-            }])
+                choices: ([
+                    ['bishop', Actions.BishopSpecial],
+                    ['rook', Actions.RookSpecial],
+                    ['diagonal', Actions.DiagonalSpecial],
+                    ['hopstep', Actions.HopStepSpecial],
+                    ['rotate', Actions.PointSymmetricSpecial],
+                    ['start', Actions.BackToStartSpecial],
+                    ['cancel', null]
+                ] as [string, typeof Actions.ActionSpecial?][])
+                    .filter(value => value[1] ? this.hasSpecial(value[1]) : true)
+                    .map(value => {
+                        return {title: value[0], value: value[0]}
+                    })
+            })
+            
             switch (input.special) {
                 case 'bishop':
                     return new Actions.BishopSpecial(this, await this.handleDiagonalDirection())
@@ -91,12 +92,14 @@ export class PlayerCli extends Player {
 
     async handleOrthologicalDirection(): Promise<OrthogonalDirections> {
         while (true) {
-            const input = await inquirer.prompt([{
-                type: 'list',
+            const input = await prompts({
+                type: 'select',
                 name: 'direction',
                 message: 'Which direction?',
-                choices: ['north', 'east', 'south', 'west', 'cancel']
-            }])
+                choices: ['north', 'east', 'south', 'west', 'cancel'].map(value => {
+                    return {title: value, value: value}
+                })
+            })
             switch (input.direction) {
                 case 'north':
                     return Direction.North
@@ -116,12 +119,14 @@ export class PlayerCli extends Player {
 
     async handleDiagonalDirection(): Promise<DiagonalDirections> {
         while (true) {
-            const input = await inquirer.prompt([{
-                type: 'list',
+            const input = await prompts({
+                type: 'select',
                 name: 'direction',
                 message: 'Which direction?',
-                choices: ['northeast', 'southeast', 'southwest', 'northwest', 'cancel']
-            }])
+                choices: ['northeast', 'southeast', 'southwest', 'northwest', 'cancel'].map(value => {
+                    return {title: value, value: value}
+                })
+            })
             switch (input.direction) {
                 case 'northeast':
                     return Direction.NorthEast
@@ -141,7 +146,7 @@ export class PlayerCli extends Player {
 
     // remove special if used
     async handleUseAntiGhostBarrierSpecial(): Promise<boolean> {
-        const input = await inquirer.prompt([{
+        const input = await prompts([{
             type: 'confirm',
             name: 'confirm',
             message: 'Use Anti-Ghost Barrier?',
@@ -151,11 +156,13 @@ export class PlayerCli extends Player {
 
     async handleBackToStartSpecial(): Promise<Actions.AttackAction | Actions.MoveAction | Actions.SkipAction> {
         while (true) {
-            const input = await inquirer.prompt([{
-                type: 'list',
+            const input = await prompts([{
+                type: 'select',
                 name: 'turn',
                 message: 'What would you like to do?',
-                choices: ['move', 'attack', 'skip']
+                choices: ['move', 'attack', 'skip'].map(value => {
+                    return {title: value, value: value}
+                })
             }])
             switch (input.turn) {
                 case 'move':
@@ -221,7 +228,7 @@ export class PlayerCli extends Player {
             }
 
             console.log(' ')
-            await inquirer.prompt([{
+            await prompts([{
                 type: 'confirm',
                 name: 'confirm',
                 message: 'Next Player',
