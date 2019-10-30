@@ -266,9 +266,11 @@ export class PlayerCli extends Player {
             console.log(chalk.bgMagenta.bold(`${this.emoji} was teleported!!`))
         } else if (report instanceof Reports.FoundPizzaPlayerReport) {
             if(report.topping){
-                console.log(chalk.bgBlue.bold(`${this.emoji} found a pizza! It's the ${report.topping ? Topping[report.topping] : 'None'} pizza!`))
-            } else {
-                console.log(chalk.blue(`${this.emoji} found a pizza! But they already have the ${report.player.topping ? Topping[report.player.topping] : 'None'} pizza...`))
+                console.log(chalk.bgBlue.bold(`${this.emoji} found a pizza! It's the ${Topping[report.topping]} pizza!`))
+            } else if (report.player.topping){
+                console.log(chalk.blue(`${this.emoji} found a pizza! But they already have the ${Topping[report.player.topping]} pizza...`))
+            }else{
+                console.log(chalk.bgRed(`${this.emoji} found a pizza! But they already have something strange in their hands...`))
             }
         } else if (report instanceof Reports.FoundHousePlayerReport) {
             console.log(chalk.blue(`${this.emoji} found a house!`))

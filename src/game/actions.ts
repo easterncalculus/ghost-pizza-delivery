@@ -22,7 +22,7 @@ export class SkipAction extends Action {
 
 export class EndGameAction extends Action {
     async resolve(game: Game) {
-        game.turn = game.maxPlayerTurns
+        game.turn = game.maxPlayerTurns * game.players.length
     }
 }
 
