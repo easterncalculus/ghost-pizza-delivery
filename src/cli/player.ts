@@ -157,13 +157,13 @@ export class PlayerCli extends Player {
         return input.confirm
     }
 
-    async handleBackToStartSpecial(): Promise<Actions.AttackAction | Actions.MoveAction | Actions.SkipAction | Actions.EndGameAction> {
+    async handleBackToStartSpecial(): Promise<Actions.AttackAction | Actions.MoveAction | Actions.SkipAction> {
         while (true) {
             const input = await prompts([{
                 type: 'select',
                 name: 'turn',
                 message: 'What would you like to do?',
-                choices: ['move', 'attack', 'skip', 'end game'].map(value => {
+                choices: ['move', 'attack', 'skip'].map(value => {
                     return {title: value, value: value}
                 })
             }])
@@ -174,8 +174,6 @@ export class PlayerCli extends Player {
                     return new Actions.AttackAction(this, await this.handleOrthologicalDirection())
                 case 'skip':
                     return new Actions.SkipAction(this)
-                case 'end game':
-                    return new Actions.EndGameAction(this)
                 default:
                     console.log(`Invalid choice: ${input.turn}`)
             }
