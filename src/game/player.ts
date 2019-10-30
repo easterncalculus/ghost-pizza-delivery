@@ -17,7 +17,7 @@ export abstract class Player {
 
     abstract async handleBackToStartSpecial(): Promise<Actions.Action>
 
-    abstract async recieveReport(report: Report): Promise<void>
+    abstract async receiveReport(report: Report): Promise<void>
 
     hasSpecial(special: Actions.Special) {
         return this.specials.includes(special)

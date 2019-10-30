@@ -173,7 +173,7 @@ export class PlayerCli extends Player {
         }
     }
 
-    async recieveReport(report: Reports.Report): Promise<void> {
+    async receiveReport(report: Reports.Report): Promise<void> {
         if (report instanceof Reports.TurnStartReport) {
             console.log(`${this.emoji} turn ${report.turn}`)
             
@@ -192,8 +192,8 @@ export class PlayerCli extends Player {
             console.log(`Near House: ${report.nearHouse ? chalk.bgGreen('Yes') : chalk.bgRed('No')}`)
         } else if (report instanceof Reports.WinReport) {
             console.log(`Congratulations! ${this.emoji} delivered their pizza on turn ${report.turn}!`)
-        } else if (report instanceof Reports.RecieveSpecialReport) {
-            console.log(chalk.magenta(`${this.emoji} recieved ${(report.special as Function).name}`))
+        } else if (report instanceof Reports.ReceiveSpecialReport) {
+            console.log(chalk.magenta(`${this.emoji} received ${(report.special as Function).name}`))
         } else if (report instanceof Reports.UseSpecialReport) {
             console.log(chalk.magenta(`${this.emoji} used ${(report.special as Function).name}`))
         } else if (report instanceof Reports.AttackActionReport) {

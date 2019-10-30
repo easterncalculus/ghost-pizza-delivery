@@ -134,7 +134,7 @@ export abstract class Game {
         const special = this.specials.draw()
         if (special) {
             player.addSpecial(special)
-            this.sendPlayerReport(new Reports.RecieveSpecialReport(player, special))
+            this.sendPlayerReport(new Reports.ReceiveSpecialReport(player, special))
         }
     }
 
