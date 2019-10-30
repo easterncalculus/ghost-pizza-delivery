@@ -1,4 +1,5 @@
 import inquirer from "inquirer"
+import chalk from "chalk"
 
 import { OrthogonalDirections, Direction, DiagonalDirections } from "../game/directions"
 import * as Reports from "../game/reports"
@@ -181,40 +182,44 @@ export class PlayerCli extends Player {
         } else if (report instanceof Reports.TurnEndReport) {
             console.log(' ')
             console.log(`${this.emoji} report`)
-            console.log(`Adjacent Walls: ${Array.from(report.walls).map(wall => Direction[wall]).join(', ') || 'None'}`)
-            console.log(`Near Ghosts: ${report.nearGhosts ? 'Yes' : 'No'}`)
-            console.log(`Near Pizza: ${report.nearPizza ? 'Yes' : 'No'}`)
-            console.log(`Near House: ${report.nearHouse ? 'Yes' : 'No'}`)
+            console.log(`Adjacent Walls: ${Array.from(report.walls).map(wall => Direction[wall]).join(', ') || chalk.bgRed('None')}`)
+            console.log(`Near Ghosts: ${report.nearGhosts ? chalk.bgGreen('Yes') : chalk.bgRed('No')}`)
+            console.log(`Near Pizza: ${report.nearPizza ? chalk.bgGreen('Yes') : chalk.bgRed('No')}`)
+            console.log(`Near House: ${report.nearHouse ? chalk.bgGreen('Yes') : chalk.bgRed('No')}`)
         } else if (report instanceof Reports.WinReport) {
-            console.log(`${this.emoji} won on turn ${report.turn}!`)
+            console.log(`Congratulations! ${this.emoji} delivered their pizza on turn ${report.turn}!`)
         } else if (report instanceof Reports.RecieveSpecialReport) {
-            console.log(`${this.emoji} recived ${(report.special as Function).name}`)
+            console.log(chalk.magenta(`${this.emoji} recieved ${(report.special as Function).name}`))
         } else if (report instanceof Reports.UseSpecialReport) {
-            console.log(`${this.emoji} used ${(report.special as Function).name}`)
+            console.log(chalk.magenta(`${this.emoji} used ${(report.special as Function).name}`))
         } else if (report instanceof Reports.AttackActionReport) {
             console.log(`${this.emoji} attacked ${Direction[report.direction]}`)
         } else if (report instanceof Reports.ChaseAwayGhostActionReport) {
-            console.log(`${this.emoji} chased away a ghost`)
+            console.log(chalk.red(`${this.emoji} chased away a ghost`))
         } else if (report instanceof Reports.GhostNotFoundActionReport) {
-            console.log(`${this.emoji} attack failed. There is no ghost in that square`)
+            console.log(chalk.bgRed(`${this.emoji} attack failed. There is no ghost in that square`))
         } else if (report instanceof Reports.MoveActionReport) {
             console.log(`${this.emoji} moved ${Direction[report.direction]}`)
         } else if (report instanceof Reports.DiagonalMoveActionReport) {
             console.log(`${this.emoji} moved ${Direction[report.direction]}`)
         } else if (report instanceof Reports.BumpedIntoWallActionReport) {
-            console.log(`${this.emoji} bumped into a wall and was sent back`)
+            console.log(chalk.bgRed(`${this.emoji} bumped into a wall and was sent back`))
         } else if (report instanceof Reports.BumpedIntoGhostActionReport) {
-            console.log(`${this.emoji} bumped into a ghost and was sent back`)
+            console.log(chalk.bgRed(`${this.emoji} bumped into a ghost and was sent back`))
         } else if (report instanceof Reports.TeleportMoveActionReport) {
-            console.log(`${this.emoji} teleported ${report.count} spaces ${Direction[report.direction]}`)
+            console.log(chalk.magenta(`${this.emoji} teleported ${report.count} spaces ${Direction[report.direction]}`))
         } else if (report instanceof Reports.BackToStartTeleportActionReport) {
-            console.log(`${this.emoji} teleported to the start`)
+            console.log(chalk.magenta(`${this.emoji} teleported to their starting space`))
         } else if (report instanceof Reports.TeleportActionReport) {
-            console.log(`${this.emoji} was teleported`)
+            console.log(chalk.bgMagenta.bold(`${this.emoji} was teleported!!`))
         } else if (report instanceof Reports.FoundPizzaActionReport) {
-            console.log(`${this.emoji} found a pizza!`)
+            if(report.topping){
+                console.log(chalk.bgBlue.bold(`${this.emoji} found a pizza! It's the ${report.topping ? Topping[report.topping] : 'None'} pizza`))
+            } else {
+                console.log(chalk.blue(`${this.emoji} found a pizza! But they already have the ${report.player.topping ? Topping[report.player.topping] : 'None'} pizza`))
+            }
         } else if (report instanceof Reports.FoundHouseActionReport) {
-            console.log(`${this.emoji} found a house!`)
+            console.log(chalk.blue(`${this.emoji} found a house!`))
         } else {
             console.log(report)
         }
