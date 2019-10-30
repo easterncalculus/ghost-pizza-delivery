@@ -35,7 +35,7 @@ export class AttackAction extends Action {
     }
 
     async resolve(game: Game) {
-        game.sendPlayerReport(new Reports.AttackActionReport(this.player, this.direction))
+        await game.sendPlayerReport(new Reports.AttackActionReport(this.player, this.direction))
     
         const attackPoint = game.grid.offsetPoint(this.player.point, this.direction)
         if (attackPoint == null) return
@@ -54,7 +54,7 @@ export class MoveAction extends Action {
     }
 
     async resolve(game: Game) {
-        game.sendPlayerReport(new Reports.MoveActionReport(this.player, this.direction))
+        await game.sendPlayerReport(new Reports.MoveActionReport(this.player, this.direction))
         
         const newPoint = game.grid.offsetPoint(this.player.point, this.direction)
         const newTile = game.grid.getOrBorder(newPoint)
@@ -67,7 +67,7 @@ export interface Special {}
 export abstract class ActionSpecial extends Action implements Special {
     async resolve(game: Game) {
         this.player.removeSpecial(this.constructor)
-        game.sendPlayerReport(new Reports.UseSpecialReport(this.player, this.constructor))
+        await game.sendPlayerReport(new Reports.UseSpecialReport(this.player, this.constructor))
     }
 }
 
@@ -94,7 +94,7 @@ export class BishopSpecial extends ActionSpecial {
             newTile = game.grid.getOrBorder(newPoint)
         }
     
-        game.sendPlayerReport(new Reports.TeleportMoveActionReport(this.player, this.direction, offset))
+        await game.sendPlayerReport(new Reports.TeleportMoveActionReport(this.player, this.direction, offset))
         if (offset == 0) return
 
         await newTile.onMoveTo(game, this.player, newPoint, true)
@@ -109,7 +109,7 @@ export class BishopSpecial extends ActionSpecial {
 //remove ghost. do not report
 //fail if unable to move. report
 export class RookSpecial extends ActionSpecial {
-    direction: OrthogonalDirections
+    readonly direction: OrthogonalDirections
 
     constructor(player: Player, direction: OrthogonalDirections) {
         super(player)
@@ -128,7 +128,7 @@ export class RookSpecial extends ActionSpecial {
             newTile = game.grid.getOrBorder(newPoint)
         }
     
-        game.sendPlayerReport(new Reports.TeleportMoveActionReport(this.player, this.direction, offset))
+        await game.sendPlayerReport(new Reports.TeleportMoveActionReport(this.player, this.direction, offset))
         if (offset == 0) return
 
         await newTile.onMoveTo(game, this.player, newPoint, true)
@@ -143,7 +143,7 @@ export class RookSpecial extends ActionSpecial {
 //remove ghost. do not report
 //fail if wall. report
 export class DiagonalSpecial extends ActionSpecial {
-    direction: DiagonalDirections
+    readonly direction: DiagonalDirections
 
     constructor(player: Player, direction: DiagonalDirections) {
         super(player)
@@ -153,7 +153,7 @@ export class DiagonalSpecial extends ActionSpecial {
     async resolve(game: Game) {
         await super.resolve(game)
 
-        game.sendPlayerReport(new Reports.DiagonalMoveActionReport(this.player, this.direction))
+        await game.sendPlayerReport(new Reports.DiagonalMoveActionReport(this.player, this.direction))
 
         const newPoint = game.grid.offsetPoint(this.player.point, this.direction)
         const newTile = game.grid.getOrBorder(newPoint)
@@ -165,7 +165,7 @@ export class DiagonalSpecial extends ActionSpecial {
 //remove ghost. do not report
 //fail if wall. report
 export class HopStepSpecial extends ActionSpecial {
-    direction: OrthogonalDirections
+    readonly direction: OrthogonalDirections
 
     constructor(player: Player, direction: OrthogonalDirections) {
         super(player)
@@ -175,7 +175,7 @@ export class HopStepSpecial extends ActionSpecial {
     async resolve(game: Game) {
         await super.resolve(game)
 
-        game.sendPlayerReport(new Reports.TeleportMoveActionReport(this.player, this.direction, 2))
+        await game.sendPlayerReport(new Reports.TeleportMoveActionReport(this.player, this.direction, 2))
 
         const newPoint = game.grid.offsetPoint(this.player.point, this.direction, 2)
         const newTile = game.grid.getOrBorder(newPoint)
@@ -194,7 +194,7 @@ export class PointSymmetricSpecial extends ActionSpecial {
     async resolve(game: Game) {
         await super.resolve(game)
 
-        game.sendPlayerReport(new Reports.TeleportActionReport(this.player))
+        await game.sendPlayerReport(new Reports.TeleportPlayerReport(this.player))
 
         const newPoint = this.movePoint(game)
         const newTile = game.grid.getOrBorder(newPoint)
@@ -223,7 +223,7 @@ export class BackToStartSpecial extends ActionSpecial {
         const newTile = game.grid.getOrBorder(newPoint)
         await newTile.onMoveTo(game, this.player, newPoint, true)
 
-        game.sendPlayerReport(new Reports.BackToStartTeleportActionReport(this.player))
+        await game.sendPlayerReport(new Reports.BackToStartTeleportActionReport(this.player))
         const action = await this.player.handleBackToStartSpecial()
         await action.resolve(game)
     }

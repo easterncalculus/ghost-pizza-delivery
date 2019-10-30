@@ -1,5 +1,5 @@
 export enum Topping {
     Shrimp,
-    Vegtables,
+    Vegtable,
     Cheese,
 }
