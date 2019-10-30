@@ -146,7 +146,7 @@ export abstract class Game {
         if (special) {
             player.addSpecial(special)
 <<<<<<< HEAD
-            this.sendPlayerReport(new Reports.ReceiveSpecialReport(player, special))
+            await this.sendPlayerReport(new Reports.ReceiveSpecialReport(player, special))
 =======
             await this.sendPlayerReport(new Reports.RecieveSpecialReport(player, special))
 >>>>>>> 08bb7da8d9e7da2aacfca686383f14a36b68953d

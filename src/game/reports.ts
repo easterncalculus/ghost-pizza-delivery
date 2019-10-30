@@ -46,13 +46,8 @@ export class WinReport extends PlayerReport {
     }
 }
 
-<<<<<<< HEAD
 export class ReceiveSpecialReport extends PlayerReport {
-    special: Special
-=======
-export class RecieveSpecialReport extends PlayerReport {
     readonly special: Special
->>>>>>> 08bb7da8d9e7da2aacfca686383f14a36b68953d
 
     constructor(player: Player, special: Special) {
         super(player)
