@@ -72,23 +72,24 @@ export abstract class Game {
     readonly grid: Grid
     readonly specials: Deck<Special>
     turn = -1
-    maxPlayerTurns: number
+    maxPlayerRounds: number
 
-    constructor(players: Player[], grid: Grid, specials: Deck<Special>, maxPlayerTurns: number = 20) {
+    constructor(players: Player[], grid: Grid, specials: Deck<Special>, maxPlayerRounds: number = 20) {
         this.players = players
         this.grid = grid
         this.specials = specials
-        this.maxPlayerTurns = maxPlayerTurns
+        this.maxPlayerRounds = maxPlayerRounds
     }
 
-    playerTurn = () => Math.floor(this.turn / this.players.length) + 1
+    currentPlayer = () => this.players[this.turn % this.players.length]
+    round = () => Math.floor(this.turn / this.players.length) + 1
 
     checkAllPlayersWon = () => {
         return this.players.every(player => player.won)
     }
 
     checkMaxTurnLimit = () => {
-        return this.playerTurn() > this.maxPlayerTurns
+        return this.round() > this.maxPlayerRounds
     }
 
     loop = async () => {
@@ -99,10 +100,10 @@ export abstract class Game {
             throw new ReachedMaxTurnsError()
         }
 
-        const player = this.players[this.turn % this.players.length]
+        const player = this.currentPlayer()
         if (player.won) return
 
-        await this.sendPlayerReport(new Reports.TurnStartReport(player, this.playerTurn()))
+        await this.sendPlayerReport(new Reports.TurnStartReport(player, this.round()))
     
         const action = await player.handleTurn()
         await action.resolve(this)

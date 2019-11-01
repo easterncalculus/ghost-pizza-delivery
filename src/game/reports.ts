@@ -14,11 +14,11 @@ export abstract class PlayerReport implements Report {
 }
 
 export class TurnStartReport extends PlayerReport {
-    readonly turn: number
+    readonly round: number
 
-    constructor(player: Player, turn: number) {
+    constructor(player: Player, round: number) {
         super(player)
-        this.turn = turn
+        this.round = round
     }
 }
 
@@ -38,11 +38,11 @@ export class TurnEndReport extends PlayerReport {
 }
 
 export class WinReport extends PlayerReport {
-    readonly turn: number
+    readonly round: number
     
-    constructor(player: Player, turn: number) {
+    constructor(player: Player, round: number) {
         super(player)
-        this.turn = turn
+        this.round = round
     }
 }
 

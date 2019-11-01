@@ -179,7 +179,7 @@ export class PlayerCli extends Player {
 
     async recieveReport(report: Reports.Report): Promise<void> {
         if (report instanceof Reports.TurnStartReport) {
-            console.log(`${this.emoji} turn ${report.turn}`)
+            console.log(`${this.emoji} round ${report.round}`)
             
             const specials = Array.from(new Set(this.specials)).map(x => {
                 return `${(x as Function).name} x${this.specials.filter(y => y === x).length}`
@@ -226,15 +226,8 @@ export class PlayerCli extends Player {
             } else {
                 console.log(`Near Houses: ${report.houses ? 'Yes' : 'No'}`)
             }
-
-            console.log(' ')
-            await prompts([{
-                type: 'text',
-                name: 'confirm',
-                message: 'Next Player',
-            }])
         } else if (report instanceof Reports.WinReport) {
-            console.log(`${this.emoji} won on turn ${report.turn}!`)
+            console.log(`${this.emoji} won on round ${report.round}!`)
         } else if (report instanceof Reports.RecieveSpecialReport) {
             console.log(`${this.emoji} recived ${(report.special as Function).name}`)
         } else if (report instanceof Reports.UseSpecialReport) {

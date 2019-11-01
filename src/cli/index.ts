@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import prompts from 'prompts';
 import program from 'commander';
 import chalk from 'chalk'
 
@@ -95,6 +96,7 @@ const startGame = async (
     playerCount: number,
     {
         showMap = false,
+        rounds = 20,
         width = 7,
         height = 7,
         walls = 4,
@@ -106,6 +108,7 @@ const startGame = async (
         manholes = 0,
     } = {
         showMap: false,
+        rounds: 20,
         width: 7,
         height: 7,
         walls: 4,
@@ -151,7 +154,7 @@ const startGame = async (
         Specials.AntiGhostBarrierSpecial,
     ], new Array(), true)
 
-    const game = new GameCli(players, new Grid(width, height), deck, 20)
+    const game = new GameCli(players, new Grid(width, height), deck, rounds)
     randomizeGameGrid(game, {
         walls,
         graves,
@@ -183,6 +186,13 @@ const startGame = async (
                 console.log(map)
                 console.log(' ')
             }
+
+            console.log(' ')
+            await prompts([{
+                type: 'text',
+                name: 'confirm',
+                message: 'Next Player',
+            }])
         } catch (exception) {
             if (exception instanceof GameOverError) {
                 console.log(' ')
@@ -199,8 +209,8 @@ const startGame = async (
                             console.log('Setup')
                         } else {
                             const playerCount = game.players.length
-                            const turn = (index - 1)
-                            console.log(`${players[turn % playerCount].emoji} turn ${Math.floor(turn / playerCount) + 1} / ${Math.floor((game.turn - 1) / playerCount) + 1}`)
+                            const round = (index - 1)
+                            console.log(`${players[round % playerCount].emoji} round ${Math.floor(round / playerCount) + 1} / ${Math.floor((game.turn - 1) / playerCount) + 1}`)
                         }
                         console.log(' ')
                         console.log(map + '\n')
@@ -228,6 +238,7 @@ program
   .description("")
   .option('-p, --players <number>', 'number of players', parseInt)
   .option('-m, --map', 'show map', false)
+  .option('--rounds <number>', 'number of rounds', parseInt)
   .option('--width <number>', 'width of map', parseInt)
   .option('--height <number>', 'height of map', parseInt)
   .option('--walls <number>', 'number of wall tiles', parseInt)
@@ -241,6 +252,7 @@ program
 
 startGame(program.players, {
     showMap: program.map,
+    rounds: program.rounds,
     width: program.width,
     height: program.height,
     walls: program.walls,

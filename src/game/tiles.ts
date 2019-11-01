@@ -178,9 +178,9 @@ export class House extends BaseTile {
         if (this.spawned) {
             await game.sendPlayerReport(new Reports.FoundHousePlayerReport(player))
             if (this.topping === player.topping) {
-                player.won = game.playerTurn()
+                player.won = game.round()
 
-                await game.sendPlayerReport(new Reports.WinReport(player, game.playerTurn()))
+                await game.sendPlayerReport(new Reports.WinReport(player, game.round()))
             }
         }
     }
