@@ -72,13 +72,13 @@ export abstract class Game {
     readonly grid: Grid
     readonly specials: Deck<Special>
     turn = -1
-    maxPlayerRounds: number
+    maxRounds: number
 
-    constructor(players: Player[], grid: Grid, specials: Deck<Special>, maxPlayerRounds: number = 20) {
+    constructor(players: Player[], grid: Grid, specials: Deck<Special>, maxRounds: number = 20) {
         this.players = players
         this.grid = grid
         this.specials = specials
-        this.maxPlayerRounds = maxPlayerRounds
+        this.maxRounds = maxRounds
     }
 
     currentPlayer = () => this.players[this.turn % this.players.length]
@@ -89,7 +89,7 @@ export abstract class Game {
     }
 
     checkMaxTurnLimit = () => {
-        return this.round() > this.maxPlayerRounds
+        return this.round() > this.maxRounds
     }
 
     loop = async () => {
@@ -103,7 +103,7 @@ export abstract class Game {
         const player = this.currentPlayer()
         if (player.won) return
 
-        await this.sendPlayerReport(new Reports.TurnStartReport(player, this.round()))
+        await this.sendPlayerReport(new Reports.TurnStartReport(player, this.round(), this.maxRounds))
     
         const action = await player.handleTurn()
         await action.resolve(this)
@@ -137,7 +137,7 @@ export abstract class Game {
         const houses = wu(surroundingTiles.values())
             .some(tile => tile.reportAsHouse())
         
-        await this.sendPlayerReport(new Reports.TurnEndReport(player, walls, ghosts, pizza, houses))
+        await this.sendPlayerReport(new Reports.TurnEndReport(player, this.round(), this.maxRounds, walls, ghosts, pizza, houses))
     }
 
     abstract async sendPlayerReport(report: Reports.Report): Promise<void>

@@ -179,7 +179,7 @@ export class PlayerCli extends Player {
 
     async recieveReport(report: Reports.Report): Promise<void> {
         if (report instanceof Reports.TurnStartReport) {
-            console.log(`${this.emoji} round ${report.round}`)
+            console.log(`${this.emoji} round ${report.round} / ${report.maxRounds}`)
             
             const specials = Array.from(new Set(this.specials)).map(x => {
                 return `${(x as Function).name} x${this.specials.filter(y => y === x).length}`

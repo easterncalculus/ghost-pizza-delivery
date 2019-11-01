@@ -180,7 +180,7 @@ export class House extends BaseTile {
             if (this.topping === player.topping) {
                 player.won = game.round()
 
-                await game.sendPlayerReport(new Reports.WinReport(player, game.round()))
+                await game.sendPlayerReport(new Reports.WinReport(player, game.round(), game.maxRounds))
             }
         }
     }
