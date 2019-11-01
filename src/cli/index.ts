@@ -184,15 +184,33 @@ const startGame = async (
             }
         } catch (exception) {
             if (exception instanceof GameOverError) {
+                console.log(' ')
                 while (true) {
                     for (let [index, map] of replay.entries()) {
                         if (index != 0) {
-                            process.stdout.moveCursor(0, -game.grid.height)
+                            for (let i = 0; i < game.grid.height + 4; i++) {
+                                process.stdout.moveCursor(0, -1)
+                                process.stdout.clearLine(0)
+                            }
                         }
-                        process.stdout.write(map + '\n')
+                        console.log('Replay')
+                        if (index === 0) {
+                            console.log('Setup')
+                        } else {
+                            const playerCount = game.players.length
+                            const turn = (index - 1)
+                            console.log(`${players[turn % playerCount].emoji} turn ${Math.floor(turn / playerCount) + 1} / ${Math.floor((game.turn - 1) / playerCount) + 1}`)
+                        }
+                        console.log(' ')
+                        console.log(map + '\n')
                         await sleep(1000)
                     }
                     await sleep(1000)
+
+                    for (let i = 0; i < game.grid.height + 4; i++) {
+                        process.stdout.moveCursor(0, -1)
+                        process.stdout.clearLine(0)
+                    }
                 }
             } else {
                 console.error(exception)
