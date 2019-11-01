@@ -229,7 +229,7 @@ export class PlayerCli extends Player {
 
             console.log(' ')
             await prompts([{
-                type: 'confirm',
+                type: 'text',
                 name: 'confirm',
                 message: 'Next Player',
             }])
