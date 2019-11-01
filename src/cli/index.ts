@@ -29,8 +29,9 @@ const colorTopping = (emoji: string, topping: Topping | null) => {
 
 
 const asciiGrid = (grid: Grid, players: PlayerCli[]) => {
+    const playerPoints = new Map(players.map(player => [player.point, player]))
     return grid.map((tile, point) => {
-        const player = players.find(player => player.point == point)
+        const player = playerPoints.get(point)
         if (player) {
             return colorTopping(player.emoji, player.topping)
         } else if (tile.ghost) {
