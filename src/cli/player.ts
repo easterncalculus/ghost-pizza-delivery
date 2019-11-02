@@ -182,7 +182,7 @@ export class PlayerCli extends Player {
 
     async receiveReport(report: Reports.Report): Promise<void> {
         if (report instanceof Reports.TurnStartReport) {
-            console.log(`${this.emoji} turn ${report.turn}`)
+            console.log(`${this.emoji} round ${report.round} / ${report.maxRounds}`)
             
             const specials = Array.from(new Set(this.specials)).map(x => {
                 return `${(x as Function).name} x${this.specials.filter(y => y === x).length}`
@@ -229,15 +229,8 @@ export class PlayerCli extends Player {
             } else {
                 console.log(`Near Houses: ${report.houses ? chalk.bgGreen('Yes') : chalk.bgRed('No')}`)
             }
-
-            console.log(' ')
-            await prompts([{
-                type: 'confirm',
-                name: 'confirm',
-                message: 'Next Player',
-            }])
         } else if (report instanceof Reports.WinReport) {
-            console.log(`Congratulations! ${this.emoji} delivered their pizza on turn ${report.turn}!`)
+            console.log(`Congratulations! ${this.emoji} delivered their pizza on turn ${report.round}!`)
         } else if (report instanceof Reports.ReceiveSpecialReport) {
             console.log(chalk.magenta(`${this.emoji} received ${(report.special as Function).name}`))
         } else if (report instanceof Reports.UseSpecialReport) {

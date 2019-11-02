@@ -14,22 +14,28 @@ export abstract class PlayerReport implements Report {
 }
 
 export class TurnStartReport extends PlayerReport {
-    readonly turn: number
+    readonly round: number
+    readonly maxRounds: number
 
-    constructor(player: Player, turn: number) {
+    constructor(player: Player, round: number, maxRounds: number) {
         super(player)
-        this.turn = turn
+        this.round = round
+        this.maxRounds = maxRounds
     }
 }
 
 export class TurnEndReport extends PlayerReport {
+    readonly round: number
+    readonly maxRounds: number
     readonly walls: Set<Direction>
     readonly ghosts: boolean | Set<Direction>
     readonly pizza: boolean | Set<Direction>
     readonly houses: boolean | Set<Direction>
 
-    constructor(player: Player, walls: Set<Direction>, ghosts: boolean, pizza: boolean | Set<Direction>, houses: boolean) {
+    constructor(player: Player, round: number, maxRounds: number, walls: Set<Direction>, ghosts: boolean, pizza: boolean | Set<Direction>, houses: boolean) {
         super(player)
+        this.round = round
+        this.maxRounds = maxRounds
         this.walls = walls
         this.ghosts = ghosts
         this.pizza = pizza
@@ -38,11 +44,13 @@ export class TurnEndReport extends PlayerReport {
 }
 
 export class WinReport extends PlayerReport {
-    readonly turn: number
+    readonly round: number
+    readonly maxRounds: number
     
-    constructor(player: Player, turn: number) {
+    constructor(player: Player, round: number, maxRounds: number) {
         super(player)
-        this.turn = turn
+        this.round = round
+        this.maxRounds = maxRounds
     }
 }
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import prompts from 'prompts';
 import program from 'commander';
 import chalk from 'chalk'
 
@@ -29,8 +30,9 @@ const colorTopping = (emoji: string, topping: Topping | null) => {
 
 
 const asciiGrid = (grid: Grid, players: PlayerCli[]) => {
+    const playerPoints = new Map(players.map(player => [player.point, player]))
     return grid.map((tile, point) => {
-        const player = players.find(player => player.point == point)
+        const player = playerPoints.get(point)
         if (player) {
             return colorTopping(player.emoji, player.topping)
         } else if (tile.ghost) {
@@ -94,6 +96,7 @@ const startGame = async (
     playerCount: number,
     {
         showMap = false,
+        rounds = 20,
         width = 7,
         height = 7,
         walls = 4,
@@ -105,6 +108,7 @@ const startGame = async (
         manholes = 0,
     } = {
         showMap: false,
+        rounds: 20,
         width: 7,
         height: 7,
         walls: 4,
@@ -150,7 +154,7 @@ const startGame = async (
         Specials.AntiGhostBarrierSpecial,
     ], new Array(), true)
 
-    const game = new GameCli(players, new Grid(width, height), deck, 20)
+    const game = new GameCli(players, new Grid(width, height), deck, rounds)
     randomizeGameGrid(game, {
         walls,
         graves,
@@ -182,17 +186,42 @@ const startGame = async (
                 console.log(map)
                 console.log(' ')
             }
+
+            console.log(' ')
+            await prompts([{
+                type: 'text',
+                name: 'confirm',
+                message: 'Next Player',
+            }])
         } catch (exception) {
             if (exception instanceof GameOverError) {
+                console.log(' ')
                 while (true) {
                     for (let [index, map] of replay.entries()) {
                         if (index != 0) {
-                            process.stdout.moveCursor(0, -game.grid.height)
+                            for (let i = 0; i < game.grid.height + 4; i++) {
+                                process.stdout.moveCursor(0, -1)
+                                process.stdout.clearLine(0)
+                            }
                         }
-                        process.stdout.write(map + '\n')
+                        console.log('Replay')
+                        if (index === 0) {
+                            console.log('Setup')
+                        } else {
+                            const playerCount = game.players.length
+                            const round = (index - 1)
+                            console.log(`${players[round % playerCount].emoji} round ${Math.floor(round / playerCount) + 1} / ${Math.floor((game.turn - 1) / playerCount) + 1}`)
+                        }
+                        console.log(' ')
+                        console.log(map + '\n')
                         await sleep(1000)
                     }
                     await sleep(1000)
+
+                    for (let i = 0; i < game.grid.height + 4; i++) {
+                        process.stdout.moveCursor(0, -1)
+                        process.stdout.clearLine(0)
+                    }
                 }
             } else {
                 console.error(exception)
@@ -209,6 +238,7 @@ program
   .description("")
   .option('-p, --players <number>', 'number of players', parseInt)
   .option('-m, --map', 'show map', false)
+  .option('--rounds <number>', 'number of rounds', parseInt)
   .option('--width <number>', 'width of map', parseInt)
   .option('--height <number>', 'height of map', parseInt)
   .option('--walls <number>', 'number of wall tiles', parseInt)
@@ -222,6 +252,7 @@ program
 
 startGame(program.players, {
     showMap: program.map,
+    rounds: program.rounds,
     width: program.width,
     height: program.height,
     walls: program.walls,

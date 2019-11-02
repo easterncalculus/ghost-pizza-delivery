@@ -222,7 +222,9 @@ export function randomizeGameGrid(
     }
 
     const initTeleporters = (grid: Grid, count: number) => {
-        if (count == 1)
+        if (count <= 0)
+            return
+        else if (count == 1)
             throw new Error('Can\'t have only 1 teleporter')
 
         const firstPoint = grid.randomPoint(([_, tile]) => tile instanceof Tiles.Empty && !tile.safe)

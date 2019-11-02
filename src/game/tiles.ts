@@ -140,7 +140,6 @@ export class Pizza extends BaseTile {
         player.point = point
         if (!this.found) {
             if (player.topping === null) {
-                this.found = true
                 player.topping = this.topping
                 game.spawnHouse(game.players, this)
 
@@ -179,9 +178,9 @@ export class House extends BaseTile {
         if (this.spawned) {
             await game.sendPlayerReport(new Reports.FoundHousePlayerReport(player))
             if (this.topping === player.topping) {
-                player.won = game.playerTurn()
+                player.won = game.round()
 
-                await game.sendPlayerReport(new Reports.WinReport(player, game.playerTurn()))
+                await game.sendPlayerReport(new Reports.WinReport(player, game.round(), game.maxRounds))
             }
         }
     }
